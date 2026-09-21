@@ -1,0 +1,181 @@
+/*
+ * Theme palettes.
+ * Every colour a component can use is declared here as an `R G B` triple so that
+ * Tailwind can apply opacity modifiers (`bg-primary/10`).
+ * A theme is applied by setting `data-theme` on <html>.
+ */
+
+:root,
+[data-theme='candy'] {
+  --font-ui: 'Nunito', 'Noto Sans Telugu';
+  --font-display: 'Baloo 2', 'Noto Sans Telugu';
+
+  --c-canvas: 239 246 255;
+  --c-canvas-alt: 214 233 255;
+  --c-surface: 255 255 255;
+  --c-surface-sunken: 241 245 249;
+  --c-line: 226 232 240;
+
+  --c-ink: 15 23 42;
+  --c-ink-muted: 71 85 105;
+  --c-ink-subtle: 148 163 184;
+
+  --c-primary: 59 130 246;
+  --c-primary-strong: 37 99 235;
+  --c-primary-soft: 219 234 254;
+  --c-on-primary: 255 255 255;
+
+  --c-success: 34 197 94;
+  --c-success-strong: 22 163 74;
+  --c-success-soft: 220 252 231;
+
+  --c-danger: 239 68 68;
+  --c-danger-strong: 220 38 38;
+  --c-danger-soft: 254 226 226;
+
+  --c-warning: 245 158 11;
+  --c-warning-soft: 254 243 199;
+
+  --c-accent: 168 85 247;
+  --c-accent-soft: 243 232 255;
+
+  --c-info: 14 165 233;
+  --c-info-soft: 224 242 254;
+}
+
+[data-theme='night'] {
+  --c-canvas: 15 23 42;
+  --c-canvas-alt: 2 6 23;
+  --c-surface: 30 41 59;
+  --c-surface-sunken: 51 65 85;
+  --c-line: 51 65 85;
+
+  --c-ink: 248 250 252;
+  --c-ink-muted: 203 213 225;
+  --c-ink-subtle: 148 163 184;
+
+  --c-primary: 96 165 250;
+  --c-primary-strong: 59 130 246;
+  --c-primary-soft: 30 58 138;
+  --c-on-primary: 15 23 42;
+
+  --c-success: 74 222 128;
+  --c-success-strong: 34 197 94;
+  --c-success-soft: 20 83 45;
+
+  --c-danger: 248 113 113;
+  --c-danger-strong: 239 68 68;
+  --c-danger-soft: 127 29 29;
+
+  --c-warning: 251 191 36;
+  --c-warning-soft: 120 53 15;
+
+  --c-accent: 192 132 252;
+  --c-accent-soft: 88 28 135;
+
+  --c-info: 56 189 248;
+  --c-info-soft: 12 74 110;
+}
+
+[data-theme='sunrise'] {
+  --c-canvas: 255 247 237;
+  --c-canvas-alt: 254 226 192;
+  --c-surface: 255 255 255;
+  --c-surface-sunken: 255 241 230;
+  --c-line: 253 227 205;
+
+  --c-ink: 67 25 5;
+  --c-ink-muted: 124 62 22;
+  --c-ink-subtle: 180 124 88;
+
+  --c-primary: 249 115 22;
+  --c-primary-strong: 234 88 12;
+  --c-primary-soft: 255 237 213;
+  --c-on-primary: 255 255 255;
+
+  --c-success: 22 163 74;
+  --c-success-strong: 21 128 61;
+  --c-success-soft: 220 252 231;
+
+  --c-danger: 225 29 72;
+  --c-danger-strong: 190 18 60;
+  --c-danger-soft: 255 228 230;
+
+  --c-warning: 217 119 6;
+  --c-warning-soft: 254 243 199;
+
+  --c-accent: 219 39 119;
+  --c-accent-soft: 252 231 243;
+
+  --c-info: 8 145 178;
+  --c-info-soft: 207 250 254;
+}
+
+[data-theme='forest'] {
+  --c-canvas: 240 253 244;
+  --c-canvas-alt: 209 250 229;
+  --c-surface: 255 255 255;
+  --c-surface-sunken: 236 253 245;
+  --c-line: 205 243 224;
+
+  --c-ink: 6 46 30;
+  --c-ink-muted: 21 94 64;
+  --c-ink-subtle: 108 155 130;
+
+  --c-primary: 16 185 129;
+  --c-primary-strong: 5 150 105;
+  --c-primary-soft: 209 250 229;
+  --c-on-primary: 255 255 255;
+
+  --c-success: 34 197 94;
+  --c-success-strong: 22 163 74;
+  --c-success-soft: 220 252 231;
+
+  --c-danger: 239 68 68;
+  --c-danger-strong: 220 38 38;
+  --c-danger-soft: 254 226 226;
+
+  --c-warning: 202 138 4;
+  --c-warning-soft: 254 249 195;
+
+  --c-accent: 13 148 136;
+  --c-accent-soft: 204 251 241;
+
+  --c-info: 2 132 199;
+  --c-info-soft: 224 242 254;
+}
+
+/* High contrast - helpful on classroom projectors and for low vision. */
+[data-theme='contrast'] {
+  --c-canvas: 0 0 0;
+  --c-canvas-alt: 0 0 0;
+  --c-surface: 17 17 17;
+  --c-surface-sunken: 38 38 38;
+  --c-line: 115 115 115;
+
+  --c-ink: 255 255 255;
+  --c-ink-muted: 229 229 229;
+  --c-ink-subtle: 190 190 190;
+
+  --c-primary: 250 204 21;
+  --c-primary-strong: 234 179 8;
+  --c-primary-soft: 66 52 0;
+  --c-on-primary: 0 0 0;
+
+  --c-success: 74 222 128;
+  --c-success-strong: 34 197 94;
+  --c-success-soft: 5 46 22;
+
+  --c-danger: 248 113 113;
+  --c-danger-strong: 239 68 68;
+  --c-danger-soft: 69 10 10;
+
+  --c-warning: 250 204 21;
+  --c-warning-soft: 66 52 0;
+
+  --c-accent: 244 114 182;
+  --c-accent-soft: 80 7 36;
+
+  --c-info: 125 211 252;
+  --c-info-soft: 8 47 73;
+}
