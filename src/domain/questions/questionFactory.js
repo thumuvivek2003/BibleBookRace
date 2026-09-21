@@ -1,5 +1,5 @@
 import { getBookById, getSectionOfBook } from '@/domain/books/bookRepository.js';
-import { getGame, resolveStage } from '@/domain/games/gameCatalog.js';
+import { getGame, resolveRoundLength, resolveStage } from '@/domain/games/gameCatalog.js';
 import { defaultRng, pickOne } from '@/utils/random.js';
 import { getGenerator } from './questionRegistry.js';
 import { ANSWER_MODE } from './questionTypes.js';
@@ -57,24 +57,28 @@ export function createQuestion({ type, book, params = {}, rng = defaultRng, game
  * teaching strategy - random practice, tier-1 only, or weak-book-first - without
  * this factory knowing anything about progress storage.
  *
+ * `settings` carries whatever the learner chose for a configurable game (the
+ * number of books to order, say) and is merged over the stage's own params.
+ *
  * @param {object} params
  * @param {string} params.gameId
  * @param {(context: { index: number, usedBookIds: string[] }) => object} params.selectBook
  * @param {number} [params.count]
+ * @param {object} [params.settings]
  * @param {import('@/utils/random.js').Rng} [params.rng]
  * @returns {object[]}
  */
-export function createRound({ gameId, selectBook, count, rng = defaultRng }) {
+export function createRound({ gameId, selectBook, count, settings, rng = defaultRng }) {
   const game = getGame(gameId);
   if (!game) throw new Error(`Unknown game "${gameId}"`);
 
-  const total = count ?? game.questionsPerRound;
+  const total = count ?? resolveRoundLength(game, settings);
   const questions = [];
   const usedBookIds = [];
 
   for (let index = 0; index < total; index += 1) {
     const stage = resolveStage(game, index, total);
-    const question = buildWithRetry({ stage, game, index, usedBookIds, selectBook, rng });
+    const question = buildWithRetry({ stage, game, settings, index, usedBookIds, selectBook, rng });
     if (!question) continue;
     questions.push(question);
     usedBookIds.push(question.bookId);
@@ -85,7 +89,7 @@ export function createRound({ gameId, selectBook, count, rng = defaultRng }) {
 
 const MAX_ATTEMPTS = 12;
 
-function buildWithRetry({ stage, game, index, usedBookIds, selectBook, rng }) {
+function buildWithRetry({ stage, game, settings, index, usedBookIds, selectBook, rng }) {
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
     // Avoid repeating a book inside one round while enough books remain.
     const avoidRepeats = attempt < MAX_ATTEMPTS / 2;
@@ -95,7 +99,7 @@ function buildWithRetry({ stage, game, index, usedBookIds, selectBook, rng }) {
     const question = createQuestion({
       type: stage.type,
       book,
-      params: stage.params,
+      params: { ...stage.params, ...settings },
       rng,
       gameId: game.id,
       stageId: stage.id,

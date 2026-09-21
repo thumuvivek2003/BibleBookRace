@@ -6,7 +6,6 @@ import { createQuestion } from '@/domain/questions/questionFactory.js';
 import { QUESTION_TYPE } from '@/domain/questions/questionTypes.js';
 import { buildQuestBooks, getQuest, scoreQuest } from '@/domain/quest/questModel.js';
 import {
-  advance,
   createRoundSession,
   currentQuestion,
   isFinished,
@@ -23,6 +22,10 @@ const QUEST_GAME_ID = 'quest';
  * Deliberately built on the same pure pieces as training (question factory,
  * round session, progress reducers) - a quest is a different *selection* of
  * books, not a different engine.
+ *
+ * Like Hand Geography, a quest runs on one continuous clock and moves straight
+ * to the next book: it is a race, and a dialog between books would only
+ * measure the app.
  */
 export function useQuestRun(questId) {
   const quest = getQuest(questId);
@@ -38,12 +41,21 @@ export function useQuestRun(questId) {
   const question = currentQuestion(session);
   const finished = isFinished(session);
 
-  const beginQuestion = useCallback(() => stopwatch.reset(false), [stopwatch]);
+  // Where the current book's lap began, on the one clock of the run.
+  const lapStartedAt = useRef(0);
+
+  const startRun = useCallback(() => {
+    lapStartedAt.current = 0;
+    stopwatch.reset(true);
+  }, [stopwatch]);
 
   // Side effects stay outside the state updater (see useTrainingRound).
   const answer = useCallback(
     (value) => {
-      const timeMs = stopwatch.stop();
+      const now = stopwatch.read();
+      const timeMs = Math.max(0, now - lapStartedAt.current);
+      lapStartedAt.current = now;
+
       const nextSession = submitAnswer(session, { ...value, timeMs });
       if (nextSession === session) return;
 
@@ -56,23 +68,24 @@ export function useQuestRun(questId) {
         timeMs: record.timeMs,
         at: record.at,
       });
+
+      if (isFinished(nextSession)) {
+        stopwatch.stop();
+        playSound('finish');
+      }
       setSession(nextSession);
     },
     [playSound, recordAttempt, session, stopwatch],
   );
-
-  const next = useCallback(() => {
-    const nextSession = advance(session);
-    if (isFinished(nextSession) && !isFinished(session)) playSound('finish');
-    setSession(nextSession);
-  }, [playSound, session]);
 
   const restart = useCallback(() => {
     statsAtStart.current = progress.bookStats;
     setSession(buildSession(quest, statsAtStart.current));
     setRecorded(false);
     setRunKey((key) => key + 1);
-  }, [quest, progress.bookStats]);
+    lapStartedAt.current = 0;
+    stopwatch.reset(false);
+  }, [quest, progress.bookStats, stopwatch]);
 
   const summary = useMemo(() => summariseRound(session), [session]);
   const score = useMemo(() => scoreQuest(session.answers), [session.answers]);
@@ -94,9 +107,9 @@ export function useQuestRun(questId) {
     counters: progressOf(session),
     lastAnswer: session.lastAnswer,
     stopwatch,
-    beginQuestion,
+    started: stopwatch.running || stopwatch.elapsedMs > 0,
+    startRun,
     answer,
-    next,
     restart,
   };
 }
@@ -114,5 +127,5 @@ function buildSession(quest, bookStats) {
       }),
     )
     .filter(Boolean);
-  return createRoundSession(questions, { questId: quest.id });
+  return createRoundSession(questions, { questId: quest.id }, { autoAdvance: true });
 }

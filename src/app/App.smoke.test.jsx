@@ -192,9 +192,31 @@ describe('the map leads', () => {
   });
 });
 
+/** Clicks the first button whose text contains `text`. */
+function clickByText(view, text) {
+  const button = [...view.container.querySelectorAll('button')].find((node) =>
+    node.textContent.includes(text),
+  );
+  if (!button) throw new Error(`No button containing "${text}"`);
+  view.click(button);
+  return button;
+}
+
 describe('the ordering game', () => {
+  it('asks how many books before starting, and honours the choice', () => {
+    const view = mountAt('/training/order-books');
+
+    expect(view.container.textContent).toContain('How many books?');
+    clickByText(view, '4');
+    clickByText(view, 'Start with 4');
+
+    expect(view.container.querySelectorAll('button[aria-label^="Box"]').length).toBe(4);
+    view.unmount();
+  });
+
   it('offers a box per book and places one by tapping', () => {
     const view = mountAt('/training/order-books');
+    clickByText(view, 'Start with 3');
 
     const boxes = () => [...view.container.querySelectorAll('button[aria-label^="Box"]')];
     const poolCards = () =>
@@ -213,6 +235,29 @@ describe('the ordering game', () => {
 
     expect(boxes()[0].textContent).toContain(name);
     expect(poolCards().length).toBe(boxes().length - 1);
+
+    view.unmount();
+  });
+});
+
+describe('hand geography', () => {
+  it('runs one clock and never stops to confirm a find', () => {
+    const view = mountAt('/training/hand-geography');
+    const bookName = () => view.container.querySelector('h2 + div, .break-words')?.textContent;
+
+    clickByText(view, 'Start Timer');
+    const first = bookName();
+
+    clickByText(view, 'Found It!');
+
+    // Straight to the next book: no confirmation dialog, no review card, and
+    // no "Start Timer" again.
+    expect(view.container.textContent).not.toContain('Did you find');
+    expect(view.container.textContent).not.toContain('Correct!');
+    expect(view.container.textContent).not.toContain('Start Timer');
+    expect(view.container.textContent).toContain('Found It!');
+    expect(bookName()).not.toBe(first);
+    expect(view.container.textContent).toContain('2 / 8');
 
     view.unmount();
   });

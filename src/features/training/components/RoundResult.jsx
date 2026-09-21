@@ -3,13 +3,26 @@ import { BookRow, StarRating } from '@/components/game/index.js';
 import { useTranslation } from '@/i18n/I18nProvider.jsx';
 import { useGameText } from '@/i18n/useGameText.js';
 import { getSectionOfBook } from '@/domain/books/bookRepository.js';
-import { formatPercent, formatSeconds } from '@/utils/format.js';
+import { formatPercent, formatSeconds, formatStopwatch } from '@/utils/format.js';
+import { cn } from '@/utils/cn.js';
 
 /**
  * End-of-round summary. Shows what to practise next rather than a bare score -
  * the point of the app is the next round, not the last one.
+ *
+ * `splits` turns it into a race result: total time on the clock and a
+ * per-book breakdown, which is the only way a speed run tells you anything.
  */
-export function RoundResult({ summary, title, missedBookIds = [], onPlayAgain, onExit, exitLabel, stars }) {
+export function RoundResult({
+  summary,
+  title,
+  missedBookIds = [],
+  splits,
+  onPlayAgain,
+  onExit,
+  exitLabel,
+  stars,
+}) {
   const { t, locale } = useTranslation();
   const gameText = useGameText();
 
@@ -36,11 +49,32 @@ export function RoundResult({ summary, title, missedBookIds = [], onPlayAgain, o
         </p>
 
         <div className="grid grid-cols-3 gap-2">
-          <StatTile icon="🎯" tone="success" value={formatPercent(summary.accuracy, locale)} label={t('result.accuracy')} />
-          <StatTile icon="⚡" tone="info" value={formatSeconds(summary.averageTimeMs, locale)} label={t('result.avgTime')} />
+          {splits ? (
+            <StatTile
+              icon="⏱"
+              tone="primary"
+              value={formatStopwatch(summary.totalTimeMs)}
+              label={t('result.totalTime')}
+            />
+          ) : (
+            <StatTile
+              icon="🎯"
+              tone="success"
+              value={formatPercent(summary.accuracy, locale)}
+              label={t('result.accuracy')}
+            />
+          )}
+          <StatTile
+            icon="⚡"
+            tone="info"
+            value={formatSeconds(summary.averageTimeMs, locale)}
+            label={t('result.avgTime')}
+          />
           <StatTile icon="🔥" tone="warning" value={summary.bestStreak} label={t('result.bestStreak')} />
         </div>
       </Card>
+
+      {splits?.length > 0 && <Splits splits={splits} />}
 
       {uniqueMissed.length > 0 && (
         <Card className="p-4">
@@ -71,5 +105,48 @@ export function RoundResult({ summary, title, missedBookIds = [], onPlayAgain, o
         </Button>
       </div>
     </div>
+  );
+}
+
+/** Per-book times, fastest highlighted - a race result, not a score card. */
+function Splits({ splits }) {
+  const { t, locale } = useTranslation();
+  const gameText = useGameText();
+
+  const times = splits.filter((split) => split.correct).map((split) => split.timeMs);
+  const fastest = times.length ? Math.min(...times) : null;
+
+  return (
+    <Card className="p-4">
+      <h3 className="mb-2 font-display text-sm font-extrabold uppercase tracking-wide text-ink-muted">
+        {t('result.splits')}
+      </h3>
+      <ul>
+        {splits.map((split, index) => (
+          <li key={`${split.bookId}-${index}`}>
+            <BookRow
+              index={index + 1}
+              tone={split.correct ? 'bg-success-soft text-success-strong' : 'bg-danger-soft text-danger-strong'}
+              name={gameText.bookName(split.bookId)}
+              right={
+                <span
+                  className={cn(
+                    'shrink-0 text-sm font-extrabold tabular-nums',
+                    split.correct && split.timeMs === fastest ? 'text-success-strong' : 'text-ink-muted',
+                  )}
+                >
+                  {split.correct && split.timeMs === fastest && (
+                    <span className="mr-1" aria-label={t('result.fastest')}>
+                      ⚡
+                    </span>
+                  )}
+                  {formatSeconds(split.timeMs, locale)}
+                </span>
+              }
+            />
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }

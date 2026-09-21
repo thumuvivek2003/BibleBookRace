@@ -1,3 +1,4 @@
+import { TOTAL_BOOKS } from '@/domain/books/bookRepository.js';
 import { QUESTION_TYPE } from '@/domain/questions/questionTypes.js';
 
 /**
@@ -74,12 +75,15 @@ export const games = Object.freeze([
     emoji: '🎯',
     tone: 'warning',
     questionsPerRound: 8,
-    // One game, one interaction - only the run gets longer.
-    stages: [
-      { id: 'order-3', share: 0.4, type: QUESTION_TYPE.ORDER_BOOKS, params: { length: 3 } },
-      { id: 'order-4', share: 0.35, type: QUESTION_TYPE.ORDER_BOOKS, params: { length: 4 } },
-      { id: 'order-5', share: 0.25, type: QUESTION_TYPE.ORDER_BOOKS, params: { length: 5 } },
-    ],
+    // How many books to order is the learner's call, not a hidden ramp.
+    setting: {
+      key: 'length',
+      presets: [3, 4, 5],
+      default: 3,
+      min: 3,
+      max: TOTAL_BOOKS,
+    },
+    stages: single(QUESTION_TYPE.ORDER_BOOKS, { length: 3 }),
   },
   {
     id: GAME_ID.NEIGHBOUR,
@@ -104,6 +108,11 @@ export const games = Object.freeze([
     tone: 'danger',
     questionsPerRound: 8,
     needsPhysicalBible: true,
+    // One clock for the whole run, and no review card between books: the
+    // point is how fast you get through them, so stopping to confirm each
+    // find would measure the app's dialogs rather than the learner.
+    continuousTimer: true,
+    autoAdvance: true,
     stages: single(QUESTION_TYPE.FIND_IN_BIBLE),
   },
 ]);
@@ -132,6 +141,38 @@ export function getGamesByGroup() {
  * @param {number} index zero based
  * @param {number} total questions in the round
  */
+/**
+ * Coerces a learner-entered setting into something the game can actually run.
+ *
+ * Lives here rather than in the input field so "between 3 and 66" is one rule
+ * with one test, not a `min`/`max` attribute that a paste or an arrow key can
+ * walk straight past.
+ *
+ * @param {object} game
+ * @param {unknown} value
+ * @returns {number} a whole number within range, or the game's default
+ */
+export function normaliseSetting(game, value) {
+  const spec = game?.setting;
+  if (!spec) return undefined;
+
+  const number = Math.floor(Number(value));
+  if (!Number.isFinite(number)) return spec.default;
+  return Math.min(spec.max, Math.max(spec.min, number));
+}
+
+/**
+ * How many questions a round should hold for a given setting.
+ *
+ * Ordering three books eight times is a good round; ordering sixty-six books
+ * eight times is a punishment. The count shrinks as the puzzle grows.
+ */
+export function resolveRoundLength(game, settings = {}) {
+  const size = settings[game.setting?.key];
+  if (!game.setting || !size) return game.questionsPerRound;
+  return Math.max(3, Math.min(game.questionsPerRound, Math.round(24 / size)));
+}
+
 export function resolveStage(game, index, total) {
   const position = total > 0 ? (index + 0.5) / total : 0;
   let cumulative = 0;

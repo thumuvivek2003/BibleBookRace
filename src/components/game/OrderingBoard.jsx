@@ -32,6 +32,10 @@ import { cn } from '@/utils/cn.js';
  */
 const POOL_ID = 'pool';
 
+/** Fills a translated announcement template. */
+const say = (template, values) =>
+  template.replace(/\{(\w+)\}/g, (match, name) => (name in values ? String(values[name]) : match));
+
 export function OrderingBoard({ cards, placements, onPlace, locked = false, labels }) {
   const [draggingId, setDraggingId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
@@ -45,6 +49,7 @@ export function OrderingBoard({ cards, placements, onPlace, locked = false, labe
   const placedIds = new Set(placements.filter(Boolean));
   const pool = cards.filter((card) => !placedIds.has(card.id));
   const cardById = (id) => cards.find((card) => card.id === id);
+  const labelOf = (id) => cardById(id)?.label ?? '';
 
   /** Puts a card in a slot, evicting whatever was there. */
   const place = (slot, cardId) => {
@@ -79,7 +84,18 @@ export function OrderingBoard({ cards, placements, onPlace, locked = false, labe
       sensors={sensors}
       collisionDetection={closestCenter}
       // dnd-kit's built-in screen reader text is English only; this app is not.
-      accessibility={{ screenReaderInstructions: { draggable: labels.dragInstructions } }}
+      accessibility={{
+        screenReaderInstructions: { draggable: labels.dragInstructions },
+        announcements: {
+          onDragStart: ({ active }) => say(labels.pickedUp, { book: labelOf(active.id) }),
+          onDragOver: () => undefined,
+          onDragEnd: ({ active, over }) =>
+            over && over.id !== POOL_ID
+              ? say(labels.droppedIn, { book: labelOf(active.id), position: Number(over.id) + 1 })
+              : say(labels.returned, { book: labelOf(active.id) }),
+          onDragCancel: ({ active }) => say(labels.returned, { book: labelOf(active.id) }),
+        },
+      }}
       onDragStart={({ active }) => {
         setDraggingId(active.id);
         setSelectedId(null);

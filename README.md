@@ -34,16 +34,25 @@ repeat until it sticks.
 | 1 | 📜 Old or New? | Which testament is this book in? |
 | 2 | 🗂️ Which Shelf? | Law, Gospels, Letters… which section? |
 | 3 | 🏘️ Who Lives Nearby? | Which run of books sits either side? |
-| 4 | 🎯 Put In Order | Drag books into canonical order |
+| 4 | 🎯 Put In Order | Drag 3, 4, 5 or up to 66 books into canonical order |
 | | **Know the neighbours** | |
 | 5 | 🔗 Before & After | What comes before, after, in between |
 | | **Find it for real** | |
-| 6 | 📖 Hand Geography | Name a book, time the real search |
+| 6 | 📖 Hand Geography | One clock, book after book, against your own best |
 | — | 🚩 Quest | Mixed runs against the clock, with stars |
 
-Difficulty still moves on its own *within* a game: a game declares stages with a
-`share` of the round and the planner walks through them, which is how "Put In
-Order" grows from three books to five without becoming a different game.
+Difficulty moves *within* a game rather than between them. A game declares
+stages with a `share` of the round and the planner walks through them; where
+the learner should decide instead, the game declares a `setting` and asks
+before the round starts — Put In Order offers 3, 4, 5 or any number up to the
+whole canon. `normaliseSetting` clamps whatever is typed, so "between 3 and 66"
+is one rule with one test rather than a `max` attribute a paste can walk past.
+
+**Hand Geography and quests run on one clock.** It starts once, at the first
+book, and then runs: tapping "Found it" takes a lap and shows the next book
+immediately. No confirmation dialog, no restart between books — a speed run
+interrupted by dialogs measures the app, not the learner. The results screen is
+a race result: total time plus a per-book split with the fastest marked.
 
 **Weak-book detection** is the heart of the app. Every answer updates a per-book
 record (attempts, accuracy, average time, last practised). The next round is then
@@ -60,7 +69,7 @@ Progression is **mastery**, not XP: `Not Yet → Learning → Familiar → Fast 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # 87 tests
+npm test         # 92 tests
 npm run lint
 npm run build
 ```
@@ -283,7 +292,9 @@ in rather than baked into the factory.
 - **Drag has a tap twin.** The ordering board supports drag *and* tap-a-card
   then tap-a-box. Drag makes it feel like a game; tapping is what works with a
   shaky hand, a trackpad or a screen reader, and is how most kids will play it.
-  dnd-kit's screen-reader instructions are translated too.
+  dnd-kit's instructions and announcements are translated too.
+- **Nothing interrupts a timed run.** If a screen is measuring someone, it does
+  not also stop to ask them a question.
 - **Nothing writes to `localStorage` directly** — only the repositories do, and
   every call is guarded, so a locked-down school device degrades to in-memory
   instead of crashing. They also read the app's previous key names, so a rename
@@ -293,7 +304,7 @@ in rather than baked into the factory.
 
 ## Testing
 
-87 tests, aimed at the brain rather than the buttons:
+92 tests, aimed at the brain rather than the buttons:
 
 - `bookRepository` — canon integrity, neighbours, edge clipping
 - `questionFactory` — one correct option, no impossible questions, real neighbours
@@ -302,13 +313,16 @@ in rather than baked into the factory.
 - `progressModel` — immutability, streak rules, best-time rules, migration
 - `questModel` — unlocks, generated quests, star rules
 - `i18n` — Telugu never falls behind English
-- `gameCatalog` — every game asks exactly one kind of question, ordering only
-  grows, and each one builds a playable round
+- `gameCatalog` — every game asks exactly one kind of question, chosen sizes are
+  clamped to 3–66 whatever is typed, long puzzles shorten the round, and each
+  game builds a playable one
 - `navigation` — the map stays ahead of the drills in the nav order
 - `imgs` — every asset entry resolves to a real bundled URL
+- `roundSession` — including that an auto-advancing round skips the review card
 - `App.smoke` — every screen mounts in both languages, one full answer loop, the
-  tap-to-place path through the drag board, the map-first ordering on Home, the
-  key art and its localised alt text, and the responsive chrome
+  size chooser, the tap-to-place path through the drag board, Hand Geography
+  running straight through with no confirmation, the map-first ordering on Home,
+  the key art and its localised alt text, and the responsive chrome
 
 ---
 

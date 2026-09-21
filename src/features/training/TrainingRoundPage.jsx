@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppShell, ScreenBody } from '@/components/layout/AppShell.jsx';
 import { ScreenHeader } from '@/components/layout/ScreenHeader.jsx';
 import { StepDots } from '@/components/ui/index.js';
 import { FeedbackPanel } from '@/components/game/index.js';
+import { getGame } from '@/domain/games/gameCatalog.js';
 import { ANSWER_MODE } from '@/domain/questions/questionTypes.js';
 import { ROUND_STATUS } from '@/domain/session/roundSession.js';
 import { useGameText } from '@/i18n/useGameText.js';
@@ -14,6 +15,7 @@ import { useTrainingRound } from './useTrainingRound.js';
 import { ChoiceQuestion } from './components/ChoiceQuestion.jsx';
 import { OrderQuestion } from './components/OrderQuestion.jsx';
 import { PhysicalFindQuestion } from './components/PhysicalFindQuestion.jsx';
+import { GameSetup } from './components/GameSetup.jsx';
 import { RoundResult } from './components/RoundResult.jsx';
 
 /**
@@ -30,10 +32,44 @@ const QUESTION_VIEWS = {
 
 export function TrainingRoundPage() {
   const { gameId } = useParams();
+  const { t } = useTranslation();
+  const game = getGame(gameId);
+
+  // A configurable game asks its question first, then mounts the round with
+  // the answer - the round is built once, so the setting has to be known.
+  const [settings, setSettings] = useState(null);
+
+  if (!game) {
+    return (
+      <AppShell width="narrow">
+        <ScreenHeader title={t('errors.notFound')} backTo={ROUTES.training} />
+      </AppShell>
+    );
+  }
+
+  if (game.setting && !settings) {
+    return (
+      <AppShell width="narrow">
+        <ScreenHeader
+          title={t(`games.${game.id}.title`)}
+          subtitle={t('training.gameLabel', { number: game.number })}
+          backTo={ROUTES.training}
+        />
+        <ScreenBody>
+          <GameSetup game={game} onStart={setSettings} />
+        </ScreenBody>
+      </AppShell>
+    );
+  }
+
+  return <Round game={game} settings={settings ?? undefined} onReconfigure={() => setSettings(null)} />;
+}
+
+function Round({ game, settings, onReconfigure }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const gameText = useGameText();
-  const round = useTrainingRound(gameId);
+  const round = useTrainingRound(game.id, settings);
 
   usePracticeClock();
 
@@ -45,23 +81,15 @@ export function TrainingRoundPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question?.id, session.status, roundKey]);
 
-  if (!round.game) {
-    return (
-      <AppShell width="narrow">
-        <ScreenHeader title={t('errors.notFound')} backTo={ROUTES.training} />
-      </AppShell>
-    );
-  }
-
-  const title = t(`games.${round.game.id}.title`);
   const QuestionView = question ? QUESTION_VIEWS[question.answerMode] : null;
   const reviewing = session.status === ROUND_STATUS.REVIEWING;
+  const answered = session.answers.length;
 
   return (
     <AppShell width="narrow">
       <ScreenHeader
-        title={title}
-        subtitle={t('training.gameLabel', { number: round.game.number })}
+        title={t(`games.${game.id}.title`)}
+        subtitle={t('training.gameLabel', { number: game.number })}
         backTo={ROUTES.training}
         right={
           !round.finished && (
@@ -76,7 +104,8 @@ export function TrainingRoundPage() {
         <StepDots
           className="mb-4 justify-center"
           total={round.counters.total}
-          completed={session.answers.length}
+          completed={answered}
+          tone={game.tone}
         />
       )}
 
@@ -86,7 +115,8 @@ export function TrainingRoundPage() {
             summary={round.summary}
             title={t('result.title')}
             missedBookIds={round.summary.missedBookIds}
-            onPlayAgain={round.restart}
+            splits={round.continuous ? session.answers : undefined}
+            onPlayAgain={game.setting ? onReconfigure : round.restart}
             onExit={() => navigate(ROUTES.training)}
             exitLabel={t('result.backToTraining')}
           />
@@ -101,9 +131,7 @@ export function TrainingRoundPage() {
                 : undefined
             }
             actionLabel={
-              session.answers.length === round.counters.total
-                ? t('feedback.seeResults')
-                : t('feedback.nextQuestion')
+              answered === round.counters.total ? t('feedback.seeResults') : t('feedback.nextQuestion')
             }
             onContinue={round.next}
           />
@@ -114,6 +142,10 @@ export function TrainingRoundPage() {
               question={question}
               stopwatch={round.stopwatch}
               onAnswer={round.answer}
+              onStart={round.startRun}
+              started={round.started}
+              position={t('question.counter', round.counters)}
+              lastSplitMs={round.lastAnswer?.timeMs}
             />
           )
         )}

@@ -51,6 +51,9 @@ export function OrderQuestion({ question, onAnswer }) {
               empty: t('order.empty'),
               pool: t('order.pool'),
               dragInstructions: t('order.dragInstructions'),
+              pickedUp: t('order.pickedUp'),
+              droppedIn: t('order.droppedIn'),
+              returned: t('order.returned'),
             }}
           />
         </div>

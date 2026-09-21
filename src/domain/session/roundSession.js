@@ -16,10 +16,15 @@ export const ROUND_STATUS = Object.freeze({
 /**
  * @param {object[]} questions
  * @param {object} [meta] anything the caller wants to carry along (gameId, questId...)
+ * @param {{ autoAdvance?: boolean }} [options]
+ *   `autoAdvance` skips the review card and goes straight to the next
+ *   question. A speed run against a real Bible must not stop to congratulate
+ *   you between books - the clock is the feedback.
  */
-export function createRoundSession(questions, meta = {}) {
+export function createRoundSession(questions, meta = {}, { autoAdvance = false } = {}) {
   return {
     meta,
+    autoAdvance,
     questions,
     index: 0,
     status: questions.length ? ROUND_STATUS.ASKING : ROUND_STATUS.FINISHED,
@@ -62,11 +67,20 @@ export function submitAnswer(session, answer) {
     given: answer,
   };
 
-  return {
+  const answered = {
     ...session,
-    status: ROUND_STATUS.REVIEWING,
     answers: [...session.answers, record],
     lastAnswer: record,
+  };
+
+  if (!session.autoAdvance) return { ...answered, status: ROUND_STATUS.REVIEWING };
+
+  const nextIndex = session.index + 1;
+  const finished = nextIndex >= session.questions.length;
+  return {
+    ...answered,
+    index: finished ? session.index : nextIndex,
+    status: finished ? ROUND_STATUS.FINISHED : ROUND_STATUS.ASKING,
   };
 }
 

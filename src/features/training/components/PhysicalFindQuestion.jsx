@@ -7,38 +7,53 @@ import { getBookById, getSectionOfBook } from '@/domain/books/bookRepository.js'
 import { formatSeconds } from '@/utils/format.js';
 
 /**
- * Hand Geography and quests: the app names a book, the learner searches a real Bible.
+ * Hand Geography and quests: the app names a book, the learner searches a real
+ * Bible.
  *
- * The clock only runs between "Start" and "Found it", and the learner confirms
- * whether the book was actually the right one - honesty is part of the drill.
+ * The clock starts once, at the first book, and then runs. Tapping "Found it"
+ * takes a lap and shows the next book immediately - no confirmation, no
+ * restart. Anything else would measure the app's dialogs rather than how fast
+ * someone can actually turn to Habakkuk.
+ *
+ * "Not this one" is there for an honest miss; it costs the book, not the run.
  */
-export function PhysicalFindQuestion({ question, stopwatch, onAnswer, onSkip }) {
+export function PhysicalFindQuestion({
+  question,
+  stopwatch,
+  onAnswer,
+  onStart,
+  started = false,
+  position,
+  lastSplitMs,
+}) {
   const { t, locale } = useTranslation();
   const gameText = useGameText();
-  const [confirming, setConfirming] = useState(false);
   const [hintOpen, setHintOpen] = useState(false);
-  const [finalTimeMs, setFinalTimeMs] = useState(0);
 
   const book = getBookById(question.bookId);
   const section = getSectionOfBook(question.bookId);
 
-  const handleFound = () => {
-    setFinalTimeMs(stopwatch.read());
-    stopwatch.stop();
-    setConfirming(true);
-  };
-
   return (
     <div className="space-y-4">
       <Card className="space-y-4 p-5 sm:p-6">
-        <h2 className="text-center font-display text-lg font-extrabold leading-snug sm:text-xl">
-          {t('question.findInBible')}
-        </h2>
+        <div className="flex items-baseline justify-between gap-2">
+          <h2 className="font-display text-base font-extrabold leading-snug sm:text-lg">
+            {t('question.findInBible')}
+          </h2>
+          {position && <span className="shrink-0 text-xs font-bold text-ink-muted">{position}</span>}
+        </div>
 
         <BookPrompt name={gameText.bookName(question.bookId)} />
 
-        {stopwatch.running || stopwatch.elapsedMs > 0 ? (
-          <TimerDisplay elapsedMs={stopwatch.elapsedMs} running={stopwatch.running} />
+        {started ? (
+          <>
+            <TimerDisplay elapsedMs={stopwatch.elapsedMs} running={stopwatch.running} />
+            {lastSplitMs != null && (
+              <p className="text-center text-xs font-semibold text-success-strong">
+                ⏱ {t('hand.lastSplit', { time: formatSeconds(lastSplitMs, locale) })}
+              </p>
+            )}
+          </>
         ) : (
           <p className="flex items-center justify-center gap-2 text-center text-sm text-ink-muted">
             <span aria-hidden="true">🕐</span>
@@ -47,13 +62,13 @@ export function PhysicalFindQuestion({ question, stopwatch, onAnswer, onSkip }) 
         )}
       </Card>
 
-      {!stopwatch.running && stopwatch.elapsedMs === 0 ? (
-        <Button tone="primary" fullWidth onClick={() => stopwatch.reset(true)}>
-          {t('hand.startTimer')}
+      {started ? (
+        <Button tone="success" size="lg" fullWidth onClick={() => onAnswer({ found: true })}>
+          {t('hand.foundIt')}
         </Button>
       ) : (
-        <Button tone="danger" fullWidth onClick={handleFound}>
-          {t('hand.foundIt')}
+        <Button tone="primary" size="lg" fullWidth onClick={onStart}>
+          {t('hand.startTimer')}
         </Button>
       )}
 
@@ -61,16 +76,15 @@ export function PhysicalFindQuestion({ question, stopwatch, onAnswer, onSkip }) 
         <button type="button" className="underline-offset-2 hover:underline" onClick={() => setHintOpen(true)}>
           {t('hand.hint')}
         </button>
-        <button
-          type="button"
-          className="underline-offset-2 hover:underline"
-          onClick={() => {
-            stopwatch.stop();
-            (onSkip ?? onAnswer)({ found: false });
-          }}
-        >
-          {t('hand.giveUp')}
-        </button>
+        {started && (
+          <button
+            type="button"
+            className="underline-offset-2 hover:underline"
+            onClick={() => onAnswer({ found: false })}
+          >
+            {t('hand.missed')}
+          </button>
+        )}
       </div>
 
       <Modal open={hintOpen} onClose={() => setHintOpen(false)} title={t('hand.hint')}>
@@ -84,20 +98,6 @@ export function PhysicalFindQuestion({ question, stopwatch, onAnswer, onSkip }) 
         <Button className="mt-4" fullWidth variant="soft" onClick={() => setHintOpen(false)}>
           {t('common.close')}
         </Button>
-      </Modal>
-
-      <Modal open={confirming} onClose={() => setConfirming(false)} title={t('hand.confirmTitle')}>
-        <p className="mb-4 text-sm text-ink-muted">
-          {t('hand.tookYou', { time: formatSeconds(finalTimeMs, locale) })}
-        </p>
-        <div className="space-y-2">
-          <Button tone="success" fullWidth onClick={() => onAnswer({ found: true, timeMs: finalTimeMs })}>
-            {t('hand.confirmYes')}
-          </Button>
-          <Button tone="neutral" variant="soft" fullWidth onClick={() => onAnswer({ found: false, timeMs: finalTimeMs })}>
-            {t('hand.confirmNo')}
-          </Button>
-        </div>
       </Modal>
     </div>
   );

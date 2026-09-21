@@ -3,7 +3,14 @@ import { getAllBooks, getBookById } from '@/domain/books/bookRepository.js';
 import { createRandomSelector, createRound } from '@/domain/questions/questionFactory.js';
 import { QUESTION_TYPE } from '@/domain/questions/questionTypes.js';
 import { createSeededRng } from '@/utils/random.js';
-import { GAME_ID, getGame, getGames, getGamesByGroup, resolveStage } from './gameCatalog.js';
+import {
+  GAME_ID,
+  getGame,
+  getGames,
+  getGamesByGroup,
+  normaliseSetting,
+  resolveRoundLength,
+} from './gameCatalog.js';
 
 const rng = () => createSeededRng(7);
 
@@ -39,15 +46,45 @@ describe('game catalog', () => {
     });
   });
 
-  it('lets the ordering game grow from three books to five', () => {
+  it('lets the learner choose how many books to order', () => {
     const game = getGame(GAME_ID.ORDER);
-    const lengths = Array.from({ length: game.questionsPerRound }, (_, index) =>
-      resolveStage(game, index, game.questionsPerRound).params.length,
-    );
-    expect(lengths[0]).toBe(3);
-    expect(lengths.at(-1)).toBe(5);
-    // Never gets easier as the round goes on.
-    expect([...lengths].sort((a, b) => a - b)).toEqual(lengths);
+    expect(game.setting).toMatchObject({ key: 'length', presets: [3, 4, 5], default: 3, min: 3 });
+    // "Up to 66 only" - the whole Bible is the ceiling.
+    expect(game.setting.max).toBe(66);
+
+    const round = createRound({
+      gameId: GAME_ID.ORDER,
+      selectBook: createRandomSelector(getAllBooks(), rng()),
+      settings: { length: 5 },
+      rng: rng(),
+    });
+    round.forEach((question) => expect(question.sequence.correct).toHaveLength(5));
+  });
+
+  it('keeps a chosen size inside the allowed range, whatever is typed', () => {
+    const game = getGame(GAME_ID.ORDER);
+    expect(normaliseSetting(game, 4)).toBe(4);
+    expect(normaliseSetting(game, 66)).toBe(66);
+    expect(normaliseSetting(game, 500)).toBe(66);
+    expect(normaliseSetting(game, 1)).toBe(3);
+    expect(normaliseSetting(game, -8)).toBe(3);
+    expect(normaliseSetting(game, 4.9)).toBe(4);
+    expect(normaliseSetting(game, 'twelve')).toBe(3);
+    expect(normaliseSetting(game, '')).toBe(3);
+  });
+
+  it('shortens the round as the puzzle grows', () => {
+    const game = getGame(GAME_ID.ORDER);
+    expect(resolveRoundLength(game, { length: 3 })).toBe(8);
+    expect(resolveRoundLength(game, { length: 5 })).toBe(5);
+    // Ordering the whole canon eight times over is a punishment, not a round.
+    expect(resolveRoundLength(game, { length: 66 })).toBe(3);
+  });
+
+  it('runs the hand game as one continuous clock with no review card', () => {
+    const game = getGame(GAME_ID.HAND);
+    expect(game.continuousTimer).toBe(true);
+    expect(game.autoAdvance).toBe(true);
   });
 
   it('keeps ordering out of the neighbour game, so each has one interaction', () => {

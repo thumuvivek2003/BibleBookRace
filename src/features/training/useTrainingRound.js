@@ -23,8 +23,16 @@ import {
  * when to write to storage. Every rule (what to ask, was it right, how did the
  * round go) comes from the pure domain modules, which is what keeps this hook
  * short and the game logic testable.
+ *
+ * Two clock modes:
+ *  - per question (the default): the clock restarts with each question.
+ *  - continuous (`game.continuousTimer`): one clock runs for the whole round
+ *    and each answer takes a lap, the way a stopwatch works at a race.
+ *
+ * @param {string} gameId
+ * @param {object} [settings] learner-chosen options, e.g. `{ length: 5 }`
  */
-export function useTrainingRound(gameId) {
+export function useTrainingRound(gameId, settings) {
   const game = getGame(gameId);
   const pool = useBookPool();
   const { progress, recordAttempt, completeRound } = useProgress();
@@ -34,22 +42,34 @@ export function useTrainingRound(gameId) {
   // The round is built once: a re-render after an answer must not reshuffle it.
   const statsAtStart = useRef(progress.bookStats);
   const [roundKey, setRoundKey] = useState(0);
-  const [session, setSession] = useState(() => buildSession(game, pool, statsAtStart.current));
+  const [session, setSession] = useState(() =>
+    buildSession(game, pool, statsAtStart.current, settings),
+  );
   const [recorded, setRecorded] = useState(false);
 
   const question = currentQuestion(session);
+  const continuous = Boolean(game?.continuousTimer);
   const manualTimer = Boolean(game?.needsPhysicalBible);
+
+  // Where the current book's lap began, on the continuous clock.
+  const lapStartedAt = useRef(0);
 
   /** Called by the screen when a new question is displayed. */
   const beginQuestion = useCallback(() => {
+    // A continuous round keeps one clock running across every book.
+    if (continuous) return;
     stopwatch.reset(!manualTimer);
-  }, [stopwatch, manualTimer]);
+  }, [continuous, manualTimer, stopwatch]);
 
-  // Side effects stay outside the state updater: a React updater must be pure,
-  // and scoring a book is very much not.
+  /** Starts the single clock of a continuous round. */
+  const startRun = useCallback(() => {
+    lapStartedAt.current = 0;
+    stopwatch.reset(true);
+  }, [stopwatch]);
+
   const answer = useCallback(
     (value) => {
-      const timeMs = stopwatch.stop();
+      const timeMs = continuous ? takeLap(stopwatch, lapStartedAt) : stopwatch.stop();
       const nextSession = submitAnswer(session, { ...value, timeMs });
       if (nextSession === session) return;
 
@@ -62,9 +82,14 @@ export function useTrainingRound(gameId) {
         timeMs: record.timeMs,
         at: record.at,
       });
+
+      if (isFinished(nextSession)) {
+        stopwatch.stop();
+        playSound('finish');
+      }
       setSession(nextSession);
     },
-    [gameId, playSound, recordAttempt, session, stopwatch],
+    [continuous, gameId, playSound, recordAttempt, session, stopwatch],
   );
 
   const next = useCallback(() => {
@@ -75,10 +100,12 @@ export function useTrainingRound(gameId) {
 
   const restart = useCallback(() => {
     statsAtStart.current = progress.bookStats;
-    setSession(buildSession(game, pool, statsAtStart.current));
+    setSession(buildSession(game, pool, statsAtStart.current, settings));
     setRecorded(false);
     setRoundKey((key) => key + 1);
-  }, [game, pool, progress.bookStats]);
+    lapStartedAt.current = 0;
+    stopwatch.reset(false);
+  }, [game, pool, progress.bookStats, settings, stopwatch]);
 
   const summary = useMemo(() => summariseRound(session), [session]);
   const finished = isFinished(session);
@@ -100,19 +127,31 @@ export function useTrainingRound(gameId) {
     counters: progressOf(session),
     lastAnswer: session.lastAnswer,
     stopwatch,
+    continuous,
     manualTimer,
+    started: stopwatch.running || stopwatch.elapsedMs > 0,
     beginQuestion,
+    startRun,
     answer,
     next,
     restart,
   };
 }
 
-function buildSession(game, pool, bookStats) {
+/** Time since the previous book, and move the lap marker forward. */
+function takeLap(stopwatch, lapStartedAt) {
+  const now = stopwatch.read();
+  const lap = Math.max(0, now - lapStartedAt.current);
+  lapStartedAt.current = now;
+  return lap;
+}
+
+function buildSession(game, pool, bookStats, settings) {
   if (!game) return createRoundSession([]);
   const questions = createRound({
     gameId: game.id,
     selectBook: createAdaptiveSelector(pool, bookStats),
+    settings,
   });
-  return createRoundSession(questions, { gameId: game.id });
+  return createRoundSession(questions, { gameId: game.id }, { autoAdvance: Boolean(game.autoAdvance) });
 }
