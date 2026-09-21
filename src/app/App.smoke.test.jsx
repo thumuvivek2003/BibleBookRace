@@ -99,7 +99,7 @@ describe('every screen mounts', () => {
 
   it('shows the welcome screen before onboarding is done', () => {
     const html = renderAt('/', { hasOnboarded: false });
-    expect(html).toContain('Bible Explorer');
+    expect(html).toContain('Bible Book Race');
   });
 
   it('shows Telugu book names when Telugu is active', () => {
@@ -148,6 +148,28 @@ describe('responsive chrome', () => {
     const progress = mountAt('/progress');
     expect(progress.container.querySelector('.max-w-5xl')).not.toBeNull();
     progress.unmount();
+  });
+});
+
+describe('the map leads', () => {
+  it('features the Bible Map on Home, above Training and Quest', () => {
+    const view = mountAt('/');
+    // Scope to <main>, so this checks the Home body rather than the nav rail.
+    const body = view.container.querySelector('main');
+    const links = [...body.querySelectorAll('a[href]')].map((a) => a.getAttribute('href'));
+
+    const firstOfEach = ['/map', '/training', '/quest'].map((href) => links.indexOf(href));
+    expect(firstOfEach[0]).toBeGreaterThanOrEqual(0);
+    expect(firstOfEach[0]).toBeLessThan(firstOfEach[1]);
+    expect(firstOfEach[0]).toBeLessThan(firstOfEach[2]);
+
+    expect(body.textContent).toContain('Start here');
+    view.unmount();
+  });
+
+  it('calls itself Bible Book Race in both languages', () => {
+    expect(renderAt('/welcome', { locale: 'en' })).toContain('Bible Book Race');
+    expect(renderAt('/welcome', { locale: 'te' })).toContain('బైబిల్ బుక్ రేస్');
   });
 });
 

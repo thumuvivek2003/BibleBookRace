@@ -10,19 +10,20 @@ import { cn } from '@/utils/cn.js';
  */
 export function BottomNav() {
   const { t } = useTranslation();
-  const tabs = NAV_TABS.filter((tab) => !tab.railOnly);
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 backdrop-blur lg:hidden">
       <ul className="mx-auto flex max-w-md items-stretch justify-around px-2 pb-[env(safe-area-inset-bottom,0px)]">
-        {tabs.map((tab) => (
-          <li key={tab.to} className="flex-1">
+        {NAV_TABS.map((tab) => (
+          <li key={tab.to} className="min-w-0 flex-1">
             <NavLink
               to={tab.to}
               end={tab.to === ROUTES.home}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center gap-0.5 py-2 text-[11px] font-bold transition',
+                  // Five tabs on a 320px screen: keep the label tight and let
+                  // it truncate rather than wrap the row onto two lines.
+                  'flex flex-col items-center gap-0.5 px-0.5 py-2 text-[10px] font-bold transition sm:text-[11px]',
                   isActive ? 'text-primary' : 'text-ink-subtle hover:text-ink-muted',
                 )
               }
@@ -35,7 +36,9 @@ export function BottomNav() {
                   >
                     {tab.icon}
                   </span>
-                  <span>{t(tab.labelKey)}</span>
+                  <span className="w-full truncate text-center">
+                    {t(tab.shortLabelKey ?? tab.labelKey)}
+                  </span>
                 </>
               )}
             </NavLink>

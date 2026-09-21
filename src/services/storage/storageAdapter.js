@@ -12,6 +12,16 @@
  */
 
 export const STORAGE_KEYS = Object.freeze({
+  progress: 'bible-book-race:progress',
+  settings: 'bible-book-race:settings',
+});
+
+/**
+ * The app was called "Bible Explorer" before. A device that already holds
+ * progress under the old keys should not lose it to a rename, so repositories
+ * fall back to these on read.
+ */
+export const LEGACY_STORAGE_KEYS = Object.freeze({
   progress: 'bible-explorer:progress',
   settings: 'bible-explorer:settings',
 });

@@ -34,7 +34,7 @@ export function createLocalStorageAdapter(storage) {
 /** True when this browser really lets us persist. */
 export function isLocalStorageAvailable() {
   try {
-    const probe = '__bible_explorer_probe__';
+    const probe = '__bible_book_race_probe__';
     globalThis.localStorage.setItem(probe, '1');
     globalThis.localStorage.removeItem(probe);
     return true;

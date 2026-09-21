@@ -1,4 +1,4 @@
-# Bible Explorer — Bible Book Race
+# Bible Book Race
 
 **Find Any Book. Anywhere. Faster.**
 
@@ -18,9 +18,15 @@ no accounts, no network.
 Book  →  Neighbour  →  Location  →  Hand  →  Speed  →  Automaticity
 ```
 
+**The Bible Map comes first.** It is the reference the drills exercise, so it
+sits immediately after Home in the navigation and is featured on Home itself —
+a learner who has never answered a question sees it ringed as the one place to
+begin. You read the map, then you drill it.
+
 | Level | Name | Trains |
 | ----- | ---- | ------ |
-| 1 | 🗺️ Bible Map | Testament → section → neighbourhood |
+| 0 | 📖 Bible Map | Where all 66 books live — browse, search, see neighbours |
+| 1 | 🗺️ Bible Map drill | Testament → section → neighbourhood |
 | 2 | 🧠 Brain → Neighbour | before / after / between / put in order |
 | 3 | ✋ Hand Geography | Name a book, time the real search |
 | — | 🚩 Quest | Mixed runs against the clock, with stars |
@@ -43,7 +49,7 @@ Progression is **mastery**, not XP: `Not Yet → Learning → Familiar → Fast 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # 64 tests
+npm test         # 68 tests
 npm run lint
 npm run build
 ```
@@ -113,10 +119,12 @@ What changes with width:
 
 - **Navigation** — [BottomNav](src/components/layout/BottomNav.jsx) and
   [NavRail](src/components/layout/NavRail.jsx) render from one shared list in
-  [navigation.js](src/app/navigation.js), so they cannot drift apart. The rail
-  also carries the app name, streak and Settings, which a phone has no room for.
-- **Home** — tiles go 2-up → 4-up; the focus list shows 3 books on a phone and 5
-  where there is space.
+  [navigation.js](src/app/navigation.js), so they cannot drift apart. The bar
+  swaps in a short label where five tabs would not fit; the rail also carries
+  the app name, streak and Settings.
+- **Home** — the Bible Map is a full-width feature card, the other three screens
+  a compact row of three; the focus list shows 3 books on a phone and 5 where
+  there is space.
 - **Training** — a stacked list becomes three cards side by side, each turning
   vertical as it narrows.
 - **Quests** — 1 → 2 → 3 columns of equal-height cards.
@@ -212,13 +220,14 @@ in rather than baked into the factory.
   zero per-component effort.
 - **Nothing writes to `localStorage` directly** — only the repositories do, and
   every call is guarded, so a locked-down school device degrades to in-memory
-  instead of crashing.
+  instead of crashing. They also read the app's previous key names, so a rename
+  never costs anyone their progress.
 
 ---
 
 ## Testing
 
-64 tests, aimed at the brain rather than the buttons:
+68 tests, aimed at the brain rather than the buttons:
 
 - `bookRepository` — canon integrity, neighbours, edge clipping
 - `questionFactory` — one correct option, no impossible questions, real neighbours
@@ -227,8 +236,10 @@ in rather than baked into the factory.
 - `progressModel` — immutability, streak rules, best-time rules, migration
 - `questModel` — unlocks, generated quests, star rules
 - `i18n` — Telugu never falls behind English
-- `App.smoke` — all 12 screens mount in both languages, one full answer loop, and
-  the responsive chrome (nav present on tabs, absent in a round; narrow vs wide column)
+- `navigation` — the map stays ahead of the drills in the nav order
+- `App.smoke` — all 12 screens mount in both languages, one full answer loop, the
+  map-first ordering on Home, and the responsive chrome (nav present on tabs,
+  absent in a round; narrow vs wide column)
 
 ---
 

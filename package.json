@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Bible Explorer - a navigation training game that helps kids and adults find any Bible book fast.",
+  "description": "Bible Book Race - a navigation training game that helps kids and adults find any Bible book fast.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

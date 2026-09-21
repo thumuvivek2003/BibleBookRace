@@ -1,5 +1,5 @@
 import { createEmptyProgress, migrateProgress } from '@/domain/progress/progressModel.js';
-import { STORAGE_KEYS } from './storageAdapter.js';
+import { LEGACY_STORAGE_KEYS, STORAGE_KEYS } from './storageAdapter.js';
 
 /**
  * Persistence for the progress document.
@@ -10,7 +10,8 @@ import { STORAGE_KEYS } from './storageAdapter.js';
 export function createProgressRepository(adapter) {
   return {
     load() {
-      const stored = adapter.read(STORAGE_KEYS.progress);
+      const stored =
+        adapter.read(STORAGE_KEYS.progress) ?? adapter.read(LEGACY_STORAGE_KEYS.progress);
       return stored ? migrateProgress(stored) : createEmptyProgress();
     },
     save(progress) {
@@ -18,6 +19,7 @@ export function createProgressRepository(adapter) {
     },
     clear() {
       adapter.remove(STORAGE_KEYS.progress);
+      adapter.remove(LEGACY_STORAGE_KEYS.progress);
     },
   };
 }

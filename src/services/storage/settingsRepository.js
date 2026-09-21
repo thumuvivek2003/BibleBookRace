@@ -1,4 +1,4 @@
-import { STORAGE_KEYS } from './storageAdapter.js';
+import { LEGACY_STORAGE_KEYS, STORAGE_KEYS } from './storageAdapter.js';
 
 /** Preferences that survive a reload: language, theme, goal, learner name. */
 export const DEFAULT_SETTINGS = Object.freeze({
@@ -15,7 +15,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
 export function createSettingsRepository(adapter) {
   return {
     load() {
-      const stored = adapter.read(STORAGE_KEYS.settings);
+      const stored =
+        adapter.read(STORAGE_KEYS.settings) ?? adapter.read(LEGACY_STORAGE_KEYS.settings);
       return { ...DEFAULT_SETTINGS, ...(stored ?? {}) };
     },
     save(settings) {
@@ -23,6 +24,7 @@ export function createSettingsRepository(adapter) {
     },
     clear() {
       adapter.remove(STORAGE_KEYS.settings);
+      adapter.remove(LEGACY_STORAGE_KEYS.settings);
     },
   };
 }

@@ -16,7 +16,7 @@ export class ErrorBoundary extends Component {
 
   componentDidCatch(error, info) {
     // eslint-disable-next-line no-console
-    console.error('[BibleExplorer]', error, info);
+    console.error('[BibleBookRace]', error, info);
   }
 
   render() {

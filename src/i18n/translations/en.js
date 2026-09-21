@@ -8,7 +8,7 @@
  */
 export default {
   common: {
-    appName: 'Bible Explorer',
+    appName: 'Bible Book Race',
     tagline: 'Find Any Book. Anywhere. Faster.',
     next: 'Next',
     back: 'Back',
@@ -25,6 +25,8 @@ export default {
   },
   nav: {
     home: 'Home',
+    map: 'Bible Map',
+    mapShort: 'Map',
     training: 'Training',
     quest: 'Quest',
     progress: 'Progress',
@@ -55,8 +57,12 @@ export default {
       progressTitle: 'Progress',
       progressSubtitle: 'See Your Growth',
       mapTitle: 'Bible Map',
-      mapSubtitle: 'Explore All Books',
+      mapSubtitle: 'Learn All 66 Books',
     },
+    learn: 'Learn',
+    mapFeatureBadge: 'Start here',
+    mapFeatureBody:
+      'Learn all 66 books and where they live. Get the map into your head before you train or take a quest.',
     focusTitle: 'Focus today',
     focusBody: 'Your slowest books right now',
     practiseThese: 'Practise these',
@@ -241,7 +247,7 @@ export default {
     dataNote: 'Everything is stored on this device only. Nothing is uploaded.',
     about: 'About',
     aboutBody:
-      'Bible Explorer trains the skill of finding books in a physical Bible: brain → neighbour → hand → speed.',
+      'Bible Book Race trains the skill of finding books in a physical Bible: brain → neighbour → hand → speed.',
   },
   themes: {
     candy: 'Candy',

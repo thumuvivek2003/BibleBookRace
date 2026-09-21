@@ -9,6 +9,7 @@ import { useTranslation } from '@/i18n/I18nProvider.jsx';
 import { useGameText } from '@/i18n/useGameText.js';
 import { ROUTES } from '@/app/routes.js';
 import { GoalCard } from './components/GoalCard.jsx';
+import { MapFeatureCard } from './components/MapFeatureCard.jsx';
 import { MenuTile } from './components/MenuTile.jsx';
 
 /** Landing screen: today's goal, the four places to go, and what to work on. */
@@ -56,8 +57,12 @@ export function HomePage() {
       <ScreenBody className="space-y-4 lg:space-y-6">
         <GoalCard goalMinutes={settings.dailyGoalMinutes} practisedMs={progress.daily.practiceMs} />
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        {/* The map comes first: it is the content the other three screens drill. */}
+        <MapFeatureCard isNewLearner={!hasHistory} />
+
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
           <MenuTile
+            compact
             to={ROUTES.training}
             tone="success"
             emoji="🎓"
@@ -65,6 +70,7 @@ export function HomePage() {
             subtitle={t('home.tiles.trainingSubtitle')}
           />
           <MenuTile
+            compact
             to={ROUTES.quest}
             tone="danger"
             emoji="🚩"
@@ -72,18 +78,12 @@ export function HomePage() {
             subtitle={t('home.tiles.questSubtitle')}
           />
           <MenuTile
+            compact
             to={ROUTES.progress}
             tone="accent"
             emoji="📊"
             title={t('home.tiles.progressTitle')}
             subtitle={t('home.tiles.progressSubtitle')}
-          />
-          <MenuTile
-            to={ROUTES.map}
-            tone="info"
-            emoji="📖"
-            title={t('home.tiles.mapTitle')}
-            subtitle={t('home.tiles.mapSubtitle')}
           />
         </div>
 
