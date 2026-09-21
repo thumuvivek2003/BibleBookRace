@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { useTranslation } from '@/i18n/I18nProvider.jsx';
 import { useProgress } from '@/app/providers/ProgressProvider.jsx';
 import { NAV_TABS } from '@/app/navigation.js';
+import { IMGS } from '@/assets/imgs.js';
 import { ROUTES } from '@/app/routes.js';
 import { cn } from '@/utils/cn.js';
 
@@ -18,9 +19,7 @@ export function NavRail() {
   return (
     <aside className="sticky top-0 hidden h-[100dvh] w-60 shrink-0 flex-col gap-6 border-r border-line bg-surface/70 px-4 py-6 backdrop-blur lg:flex xl:w-64">
       <Link to={ROUTES.home} className="flex items-center gap-2.5 px-2">
-        <span className="text-3xl" aria-hidden="true">
-          📖
-        </span>
+        <img src={IMGS.icon} alt="" width={40} height={40} className="h-10 w-10 shrink-0" />
         <span className="min-w-0">
           <span className="block truncate font-display text-lg font-extrabold leading-tight">
             {t('common.appName')}

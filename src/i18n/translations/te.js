@@ -258,6 +258,8 @@ export default {
     themeSwitcher: 'థీమ్ ఎంచుకోండి',
     languageSwitcher: 'భాష ఎంచుకోండి',
     questionProgress: '{total}లో {position}వ ప్రశ్న',
+    keyArt: 'బైబిల్ బుక్ రేస్ — బైబిల్ పుస్తకాల దారిలో పరుగెత్తుతున్న పిల్లవాడు',
+    appIcon: 'బైబిల్ బుక్ రేస్ చిహ్నం',
     correctAnswer: 'సరైన సమాధానం',
     wrongAnswer: 'తప్పు సమాధానం',
   },

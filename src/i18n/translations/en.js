@@ -262,6 +262,8 @@ export default {
     themeSwitcher: 'Choose a theme',
     languageSwitcher: 'Choose a language',
     questionProgress: 'Question {position} of {total}',
+    keyArt: 'Bible Book Race — a child running along a path of Bible books',
+    appIcon: 'Bible Book Race icon',
     correctAnswer: 'Correct answer',
     wrongAnswer: 'Wrong answer',
   },

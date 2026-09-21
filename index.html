@@ -4,18 +4,65 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#3b82f6" />
+
+    <title>Bible Book Race</title>
     <meta
       name="description"
-      content="Bible Book Race - find any Bible book, anywhere, faster. A Sunday-school friendly training game."
+      content="Find any Bible book, anywhere, faster. A Sunday-school friendly game that trains real navigation in a physical Bible — in English and Telugu."
     />
-    <link rel="icon" type="image/svg+xml" href="%BASE_URL%book.svg" />
+
+    <!--
+      Icons. %BASE_URL% is replaced by Vite with whatever base the build
+      targets, so these keep working under the /BibleBookRace/ sub-path on
+      GitHub Pages and at the root of a custom domain.
+    -->
+    <link rel="icon" type="image/png" sizes="32x32" href="%BASE_URL%favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="%BASE_URL%favicon-192.png" />
+    <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
+    <link rel="manifest" href="%BASE_URL%site.webmanifest" />
+
+    <!--
+      Link previews (WhatsApp, Slack, Twitter, LinkedIn, iMessage).
+      Crawlers do not run JavaScript and do not resolve relative URLs, so these
+      must be absolute. Change them if the site moves to another domain.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Bible Book Race" />
+    <meta property="og:title" content="Bible Book Race — Find Any Book. Anywhere. Faster." />
+    <meta
+      property="og:description"
+      content="A Sunday-school friendly game that trains real navigation in a physical Bible. Explore · Learn · Grow — in English and Telugu."
+    />
+    <meta property="og:url" content="https://thumuvivek2003.github.io/BibleBookRace/" />
+    <meta
+      property="og:image"
+      content="https://thumuvivek2003.github.io/BibleBookRace/social-card.jpg"
+    />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Bible Book Race — a child running along a path of Bible books"
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Bible Book Race — Find Any Book. Anywhere. Faster." />
+    <meta
+      name="twitter:description"
+      content="A Sunday-school friendly game that trains real navigation in a physical Bible, in English and Telugu."
+    />
+    <meta
+      name="twitter:image"
+      content="https://thumuvivek2003.github.io/BibleBookRace/social-card.jpg"
+    />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=Noto+Sans+Telugu:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <title>Bible Book Race</title>
   </head>
   <body>
     <div id="root"></div>

@@ -167,6 +167,22 @@ describe('the map leads', () => {
     view.unmount();
   });
 
+  it('opens on the key art, with alt text in the active language', () => {
+    const view = mountAt('/welcome', { locale: 'en' });
+    const art = view.container.querySelector('img[alt]');
+
+    expect(art).not.toBeNull();
+    expect(art.getAttribute('alt')).toContain('Bible Book Race');
+    // Bundled through IMGS, never a hard-coded path that breaks under the
+    // GitHub Pages sub-path.
+    expect(art.getAttribute('src')).toBeTruthy();
+    view.unmount();
+
+    const telugu = mountAt('/welcome', { locale: 'te' });
+    expect(telugu.container.querySelector('img[alt]').getAttribute('alt')).toContain('బైబిల్');
+    telugu.unmount();
+  });
+
   it('calls itself Bible Book Race in both languages', () => {
     expect(renderAt('/welcome', { locale: 'en' })).toContain('Bible Book Race');
     expect(renderAt('/welcome', { locale: 'te' })).toContain('బైబిల్ బుక్ రేస్');

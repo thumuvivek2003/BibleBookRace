@@ -49,10 +49,61 @@ Progression is **mastery**, not XP: `Not Yet → Learning → Familiar → Fast 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # 68 tests
+npm test         # 72 tests
 npm run lint
 npm run build
 ```
+
+---
+
+## Artwork & assets
+
+Images live in three places, each for a reason:
+
+| Where | What | Why |
+| ----- | ---- | --- |
+| `src/assets/` | `MainPage.webp`, `Icon.webp` | the original art, kept as the source of truth |
+| `src/assets/generated/` | `hero.webp`, `mark.webp` | trimmed and resized copies the app imports |
+| `public/` | favicons, `apple-touch-icon.png`, `social-card.jpg`, `site.webmanifest` | things browsers and crawlers ask for by a fixed name |
+
+Screens never write an image path. They import [imgs.js](src/assets/imgs.js):
+
+```jsx
+import { IMGS } from '@/assets/imgs.js';
+
+<img src={IMGS.main_screen} alt={t('a11y.keyArt')} />
+```
+
+Because those are ES imports, Vite fingerprints each file (`hero-a1b2c3.webp`),
+caches it forever, and rewrites the URL for whatever base the build targets —
+including the `/BibleBookRace/` sub-path. A hard-coded `/hero.webp` would break
+the moment the site moves; a typo in `IMGS` is a build error rather than a
+broken image in front of a class.
+
+[scripts/make-images.py](scripts/make-images.py) regenerates everything derived
+from the two source images:
+
+```bash
+python3 scripts/make-images.py
+```
+
+It trims the white surround off the art with a corner flood fill — a plain
+whiteness threshold would punch holes in the clouds and the lettering — so the
+illustration sits correctly on all five themes, and drops the hero from 470 KB
+to 120 KB. The outputs are committed, so a plain checkout builds without Python.
+
+### Sharing the link
+
+Pasting the URL into WhatsApp, Slack, iMessage or LinkedIn shows a proper
+1200×630 card, not a cropped square: the art is composited over a blurred copy
+of itself, so the sides are filled with something that belongs to the picture.
+Open Graph and Twitter tags live in [index.html](index.html) and must be
+absolute URLs — crawlers do not run JavaScript and do not resolve relative
+paths. **If the site moves to another domain, update those two `og:`/`twitter:`
+image URLs and `og:url`.**
+
+`site.webmanifest` also makes the game installable to a phone home screen with
+the app icon.
 
 ---
 
@@ -227,7 +278,7 @@ in rather than baked into the factory.
 
 ## Testing
 
-68 tests, aimed at the brain rather than the buttons:
+72 tests, aimed at the brain rather than the buttons:
 
 - `bookRepository` — canon integrity, neighbours, edge clipping
 - `questionFactory` — one correct option, no impossible questions, real neighbours
@@ -237,9 +288,10 @@ in rather than baked into the factory.
 - `questModel` — unlocks, generated quests, star rules
 - `i18n` — Telugu never falls behind English
 - `navigation` — the map stays ahead of the drills in the nav order
+- `imgs` — every asset entry resolves to a real bundled URL
 - `App.smoke` — all 12 screens mount in both languages, one full answer loop, the
-  map-first ordering on Home, and the responsive chrome (nav present on tabs,
-  absent in a round; narrow vs wide column)
+  map-first ordering on Home, the key art and its localised alt text, and the
+  responsive chrome (nav present on tabs, absent in a round; narrow vs wide column)
 
 ---
 
