@@ -4,7 +4,7 @@ import { useBookPool } from '@/hooks/useBookPool.js';
 import { useSound } from '@/hooks/useSound.js';
 import { useStopwatch } from '@/hooks/useStopwatch.js';
 import { createAdaptiveSelector } from '@/domain/mastery/weakBookSelector.js';
-import { getLevel } from '@/domain/levels/levelCatalog.js';
+import { getGame } from '@/domain/games/gameCatalog.js';
 import { createRound } from '@/domain/questions/questionFactory.js';
 import {
   advance,
@@ -17,15 +17,15 @@ import {
 } from '@/domain/session/roundSession.js';
 
 /**
- * Controller for one training round.
+ * Controller for one round of one game.
  *
  * It owns only React concerns - which question is on screen, the stopwatch, and
  * when to write to storage. Every rule (what to ask, was it right, how did the
  * round go) comes from the pure domain modules, which is what keeps this hook
  * short and the game logic testable.
  */
-export function useTrainingRound(levelId) {
-  const level = getLevel(levelId);
+export function useTrainingRound(gameId) {
+  const game = getGame(gameId);
   const pool = useBookPool();
   const { progress, recordAttempt, completeRound } = useProgress();
   const playSound = useSound();
@@ -34,11 +34,11 @@ export function useTrainingRound(levelId) {
   // The round is built once: a re-render after an answer must not reshuffle it.
   const statsAtStart = useRef(progress.bookStats);
   const [roundKey, setRoundKey] = useState(0);
-  const [session, setSession] = useState(() => buildSession(level, pool, statsAtStart.current));
+  const [session, setSession] = useState(() => buildSession(game, pool, statsAtStart.current));
   const [recorded, setRecorded] = useState(false);
 
   const question = currentQuestion(session);
-  const manualTimer = Boolean(level?.needsPhysicalBible);
+  const manualTimer = Boolean(game?.needsPhysicalBible);
 
   /** Called by the screen when a new question is displayed. */
   const beginQuestion = useCallback(() => {
@@ -57,14 +57,14 @@ export function useTrainingRound(levelId) {
       playSound(record.correct ? 'correct' : 'wrong');
       recordAttempt({
         bookId: record.bookId,
-        levelId,
+        gameId,
         correct: record.correct,
         timeMs: record.timeMs,
         at: record.at,
       });
       setSession(nextSession);
     },
-    [levelId, playSound, recordAttempt, session, stopwatch],
+    [gameId, playSound, recordAttempt, session, stopwatch],
   );
 
   const next = useCallback(() => {
@@ -75,10 +75,10 @@ export function useTrainingRound(levelId) {
 
   const restart = useCallback(() => {
     statsAtStart.current = progress.bookStats;
-    setSession(buildSession(level, pool, statsAtStart.current));
+    setSession(buildSession(game, pool, statsAtStart.current));
     setRecorded(false);
     setRoundKey((key) => key + 1);
-  }, [level, pool, progress.bookStats]);
+  }, [game, pool, progress.bookStats]);
 
   const summary = useMemo(() => summariseRound(session), [session]);
   const finished = isFinished(session);
@@ -87,11 +87,11 @@ export function useTrainingRound(levelId) {
   useEffect(() => {
     if (!finished || recorded || summary.total === 0) return;
     setRecorded(true);
-    completeRound({ levelId, accuracy: summary.accuracy });
-  }, [finished, recorded, summary.total, summary.accuracy, completeRound, levelId]);
+    completeRound({ gameId, accuracy: summary.accuracy });
+  }, [finished, recorded, summary.total, summary.accuracy, completeRound, gameId]);
 
   return {
-    level,
+    game,
     session,
     question,
     finished,
@@ -108,11 +108,11 @@ export function useTrainingRound(levelId) {
   };
 }
 
-function buildSession(level, pool, bookStats) {
-  if (!level) return createRoundSession([]);
+function buildSession(game, pool, bookStats) {
+  if (!game) return createRoundSession([]);
   const questions = createRound({
-    levelId: level.id,
+    gameId: game.id,
     selectBook: createAdaptiveSelector(pool, bookStats),
   });
-  return createRoundSession(questions, { levelId: level.id });
+  return createRoundSession(questions, { gameId: game.id });
 }

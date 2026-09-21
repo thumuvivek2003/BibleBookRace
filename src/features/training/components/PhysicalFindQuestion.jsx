@@ -7,7 +7,7 @@ import { getBookById, getSectionOfBook } from '@/domain/books/bookRepository.js'
 import { formatSeconds } from '@/utils/format.js';
 
 /**
- * Level 3 and quests: the app names a book, the learner searches a real Bible.
+ * Hand Geography and quests: the app names a book, the learner searches a real Bible.
  *
  * The clock only runs between "Start" and "Found it", and the learner confirms
  * whether the book was actually the right one - honesty is part of the drill.

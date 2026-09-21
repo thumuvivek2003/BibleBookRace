@@ -12,7 +12,7 @@ import {
 const choice = (id, correctOptionId) => ({
   id,
   bookId: 'ephesians',
-  levelId: 'bible-map',
+  gameId: 'bible-map',
   type: 'section-of-book',
   answerMode: ANSWER_MODE.CHOICE,
   correctOptionId,

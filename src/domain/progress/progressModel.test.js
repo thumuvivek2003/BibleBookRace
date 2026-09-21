@@ -14,15 +14,15 @@ const dayKey = (offsetDays) => toDayKey(new Date(Date.now() + offsetDays * 86400
 describe('progress model', () => {
   it('never mutates the document it is given', () => {
     const before = createEmptyProgress();
-    const after = recordAttempt(before, { bookId: 'john', levelId: 'bible-map', correct: true, timeMs: 1000 });
+    const after = recordAttempt(before, { bookId: 'john', gameId: 'bible-map', correct: true, timeMs: 1000 });
     expect(before.totals.attempts).toBe(0);
     expect(after.totals.attempts).toBe(1);
   });
 
   it('only counts time from correct answers towards a book average', () => {
     let progress = createEmptyProgress();
-    progress = recordAttempt(progress, { bookId: 'john', levelId: 'l', correct: true, timeMs: 2000 });
-    progress = recordAttempt(progress, { bookId: 'john', levelId: 'l', correct: false, timeMs: 9000 });
+    progress = recordAttempt(progress, { bookId: 'john', gameId: 'l', correct: true, timeMs: 2000 });
+    progress = recordAttempt(progress, { bookId: 'john', gameId: 'l', correct: false, timeMs: 9000 });
 
     expect(progress.bookStats.john).toMatchObject({ attempts: 2, correct: 1, totalTimeMs: 2000, bestTimeMs: 2000 });
     expect(getOverallAccuracy(progress)).toBe(0.5);
@@ -53,8 +53,28 @@ describe('progress model', () => {
   });
 
   it('falls back to a fresh document for unknown stored shapes', () => {
-    expect(migrateProgress(null).version).toBe(1);
+    expect(migrateProgress(null).version).toBe(2);
     expect(migrateProgress({ version: 0, junk: true }).totals.attempts).toBe(0);
-    expect(migrateProgress({ version: 1, totals: { attempts: 7, correct: 7, timeMs: 0, roundsCompleted: 1, questsCompleted: 0 } }).totals.attempts).toBe(7);
+    expect(migrateProgress({ version: 99 }).totals.attempts).toBe(0);
+  });
+
+  it('keeps hard-won book mastery when levels became games', () => {
+    const v1 = {
+      version: 1,
+      bookStats: { habakkuk: { attempts: 9, correct: 8, totalTimeMs: 40000, bestTimeMs: 3200 } },
+      levelStats: { 'bible-map': { rounds: 12, bestAccuracy: 0.9 } },
+      streak: { current: 5, longest: 9, lastDayKey: '2026-09-20' },
+      totals: { attempts: 40, correct: 33, timeMs: 1000, roundsCompleted: 4, questsCompleted: 1 },
+    };
+
+    const migrated = migrateProgress(v1);
+
+    expect(migrated.version).toBe(2);
+    expect(migrated.bookStats.habakkuk.attempts).toBe(9);
+    expect(migrated.streak).toEqual(v1.streak);
+    expect(migrated.totals.attempts).toBe(40);
+    // Round counts were keyed by level ids that no longer exist.
+    expect(migrated.gameStats).toEqual({});
+    expect(migrated.levelStats).toBeUndefined();
   });
 });

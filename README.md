@@ -23,16 +23,27 @@ sits immediately after Home in the navigation and is featured on Home itself —
 a learner who has never answered a question sees it ringed as the one place to
 begin. You read the map, then you drill it.
 
-| Level | Name | Trains |
-| ----- | ---- | ------ |
-| 0 | 📖 Bible Map | Where all 66 books live — browse, search, see neighbours |
-| 1 | 🗺️ Bible Map drill | Testament → section → neighbourhood |
-| 2 | 🧠 Brain → Neighbour | before / after / between / put in order |
-| 3 | ✋ Hand Geography | Name a book, time the real search |
+**Six games, each asking one kind of question.** Mixing "which testament?",
+"which section?" and "which neighbours?" into one round made every screen feel
+like a different exercise, so they are separate games a learner can pick and
+repeat until it sticks.
+
+| # | Game | Asks |
+| - | ---- | ---- |
+| | **Learn the map** | |
+| 1 | 📜 Old or New? | Which testament is this book in? |
+| 2 | 🗂️ Which Shelf? | Law, Gospels, Letters… which section? |
+| 3 | 🏘️ Who Lives Nearby? | Which run of books sits either side? |
+| 4 | 🎯 Put In Order | Drag books into canonical order |
+| | **Know the neighbours** | |
+| 5 | 🔗 Before & After | What comes before, after, in between |
+| | **Find it for real** | |
+| 6 | 📖 Hand Geography | Name a book, time the real search |
 | — | 🚩 Quest | Mixed runs against the clock, with stars |
 
-Difficulty is not a list of hand-made levels: each level declares *stages* with a
-share of the round, and the planner walks the learner through them.
+Difficulty still moves on its own *within* a game: a game declares stages with a
+`share` of the round and the planner walks through them, which is how "Put In
+Order" grows from three books to five without becoming a different game.
 
 **Weak-book detection** is the heart of the app. Every answer updates a per-book
 record (attempts, accuracy, average time, last practised). The next round is then
@@ -49,7 +60,7 @@ Progression is **mastery**, not XP: `Not Yet → Learning → Familiar → Fast 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # 72 tests
+npm test         # 87 tests
 npm run lint
 npm run build
 ```
@@ -219,7 +230,7 @@ src/
 │
 ├── domain/                 the game engine — pure functions, fully unit tested
 │   ├── books/              adjacency, runs, neighbourhoods, search
-│   ├── levels/             level + stage rules
+│   ├── games/              the six games, their groups and stage rules
 │   ├── questions/          generators/ + registry + factory
 │   ├── mastery/            mastery thresholds, weak-book selection
 │   ├── progress/           progress reducers + selectors
@@ -269,6 +280,10 @@ in rather than baked into the factory.
 - **No raw colours in components.** Everything goes through semantic tokens
   (`bg-surface`, `text-ink-muted`) or a `tone` prop, so all five themes work with
   zero per-component effort.
+- **Drag has a tap twin.** The ordering board supports drag *and* tap-a-card
+  then tap-a-box. Drag makes it feel like a game; tapping is what works with a
+  shaky hand, a trackpad or a screen reader, and is how most kids will play it.
+  dnd-kit's screen-reader instructions are translated too.
 - **Nothing writes to `localStorage` directly** — only the repositories do, and
   every call is guarded, so a locked-down school device degrades to in-memory
   instead of crashing. They also read the app's previous key names, so a rename
@@ -278,7 +293,7 @@ in rather than baked into the factory.
 
 ## Testing
 
-72 tests, aimed at the brain rather than the buttons:
+87 tests, aimed at the brain rather than the buttons:
 
 - `bookRepository` — canon integrity, neighbours, edge clipping
 - `questionFactory` — one correct option, no impossible questions, real neighbours
@@ -287,11 +302,13 @@ in rather than baked into the factory.
 - `progressModel` — immutability, streak rules, best-time rules, migration
 - `questModel` — unlocks, generated quests, star rules
 - `i18n` — Telugu never falls behind English
+- `gameCatalog` — every game asks exactly one kind of question, ordering only
+  grows, and each one builds a playable round
 - `navigation` — the map stays ahead of the drills in the nav order
 - `imgs` — every asset entry resolves to a real bundled URL
-- `App.smoke` — all 12 screens mount in both languages, one full answer loop, the
-  map-first ordering on Home, the key art and its localised alt text, and the
-  responsive chrome (nav present on tabs, absent in a round; narrow vs wide column)
+- `App.smoke` — every screen mounts in both languages, one full answer loop, the
+  tap-to-place path through the drag board, the map-first ordering on Home, the
+  key art and its localised alt text, and the responsive chrome
 
 ---
 

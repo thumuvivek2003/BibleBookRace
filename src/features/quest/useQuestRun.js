@@ -15,7 +15,7 @@ import {
   summariseRound,
 } from '@/domain/session/roundSession.js';
 
-const QUEST_LEVEL_ID = 'quest';
+const QUEST_GAME_ID = 'quest';
 
 /**
  * Controller for a quest run: a fixed list of books to find in a real Bible.
@@ -51,7 +51,7 @@ export function useQuestRun(questId) {
       playSound(record.correct ? 'correct' : 'wrong');
       recordAttempt({
         bookId: record.bookId,
-        levelId: QUEST_LEVEL_ID,
+        gameId: QUEST_GAME_ID,
         correct: record.correct,
         timeMs: record.timeMs,
         at: record.at,
@@ -109,7 +109,7 @@ function buildSession(quest, bookStats) {
       createQuestion({
         type: QUESTION_TYPE.FIND_IN_BIBLE,
         book,
-        levelId: QUEST_LEVEL_ID,
+        gameId: QUEST_GAME_ID,
         stageId: quest.id,
       }),
     )

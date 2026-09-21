@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { getAllBooks, getBookById } from '@/domain/books/bookRepository.js';
 import { createSeededRng } from '@/utils/random.js';
-import { LEVEL_ID } from '@/domain/levels/levelCatalog.js';
+import { getGames } from '@/domain/games/gameCatalog.js';
 import { createQuestion, createRandomSelector, createRound } from './questionFactory.js';
 import { QUESTION_TYPE } from './questionTypes.js';
 
 const rng = () => createSeededRng(42);
 
 describe('question factory', () => {
-  it('builds a full round for every level', () => {
-    Object.values(LEVEL_ID).forEach((levelId) => {
+  it('builds a full round for every game', () => {
+    getGames().forEach(({ id: gameId }) => {
       const round = createRound({
-        levelId,
+        gameId,
         selectBook: createRandomSelector(getAllBooks(), rng()),
         rng: rng(),
       });
@@ -51,6 +51,24 @@ describe('question factory', () => {
       rng: rng(),
     });
     expect(question.correctOptionId).toBe('ephesians');
+  });
+
+  it('never reveals the subject book inside a neighbourhood option', () => {
+    // Every option blanks out the book being asked about. Without that, only
+    // the correct run contained it and the question answered itself.
+    const question = createQuestion({
+      type: QUESTION_TYPE.NEIGHBOURHOOD_OF_BOOK,
+      book: getBookById('ephesians'),
+      rng: rng(),
+    });
+
+    question.options.forEach((option) => {
+      expect(option.value).toContain(null);
+      expect(option.value).not.toContain('ephesians');
+    });
+
+    const correct = question.options.find((option) => option.id === question.correctOptionId);
+    expect(correct.value).toEqual(['2-corinthians', 'galatians', null, 'philippians', 'colossians']);
   });
 
   it('shuffles ordering questions away from the answer', () => {

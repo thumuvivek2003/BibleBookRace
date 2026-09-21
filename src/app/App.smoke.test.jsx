@@ -71,7 +71,10 @@ const SCREENS = [
   '/',
   '/welcome',
   '/training',
-  '/training/bible-map',
+  '/training/testament',
+  '/training/section',
+  '/training/neighbourhood',
+  '/training/order-books',
   '/training/brain-neighbour',
   '/training/hand-geography',
   '/quest',
@@ -134,14 +137,14 @@ describe('responsive chrome', () => {
     expect(tabScreen.container.querySelector('aside')).not.toBeNull();
     tabScreen.unmount();
 
-    const round = mountAt('/training/bible-map');
+    const round = mountAt('/training/testament');
     expect(round.container.querySelector('nav')).toBeNull();
     expect(round.container.querySelector('aside')).toBeNull();
     round.unmount();
   });
 
   it('keeps a question column narrow and a dashboard wide', () => {
-    const round = mountAt('/training/bible-map');
+    const round = mountAt('/training/testament');
     expect(round.container.querySelector('.max-w-lg')).not.toBeNull();
     round.unmount();
 
@@ -189,9 +192,35 @@ describe('the map leads', () => {
   });
 });
 
+describe('the ordering game', () => {
+  it('offers a box per book and places one by tapping', () => {
+    const view = mountAt('/training/order-books');
+
+    const boxes = () => [...view.container.querySelectorAll('button[aria-label^="Box"]')];
+    const poolCards = () =>
+      [...view.container.querySelectorAll('[role="button"]')].filter(
+        (node) => !node.closest('button[aria-label^="Box"]'),
+      );
+
+    expect(boxes().length).toBeGreaterThanOrEqual(3);
+    expect(poolCards().length).toBe(boxes().length);
+
+    // Drag cannot be simulated in jsdom, but tap-to-place is the accessible
+    // path every drag target also supports - and the one most kids will use.
+    const name = poolCards()[0].textContent;
+    view.click(poolCards()[0]);
+    view.click(boxes()[0]);
+
+    expect(boxes()[0].textContent).toContain(name);
+    expect(poolCards().length).toBe(boxes().length - 1);
+
+    view.unmount();
+  });
+});
+
 describe('the core loop', () => {
   it('answers a question, shows feedback, and moves on', () => {
-    const view = mountAt('/training/bible-map');
+    const view = mountAt('/training/testament');
 
     const options = [...view.container.querySelectorAll('button[aria-pressed]')];
     expect(options.length).toBeGreaterThan(1);

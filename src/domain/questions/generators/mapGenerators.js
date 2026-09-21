@@ -73,9 +73,17 @@ export function generateSectionQuestion({ book, rng }) {
   };
 }
 
-/** Pick the run of books that actually surrounds this one. */
+/**
+ * Pick the run of books that actually surrounds this one.
+ *
+ * The subject book is blanked out of every run (`null` renders as a gap).
+ * Without that, only the correct option contained the book being asked about,
+ * so the exercise could be solved by scanning for the name instead of knowing
+ * the neighbours.
+ */
 export function generateNeighbourhoodQuestion({ book, rng }) {
-  const runOf = (bookId) => getNeighbourhood(bookId, NEIGHBOURHOOD_RADIUS).map((item) => item.id);
+  const runAround = (bookId) =>
+    getNeighbourhood(bookId, NEIGHBOURHOOD_RADIUS).map((item) => (item.id === bookId ? null : item.id));
 
   const decoyCentres = pickMany(
     Array.from({ length: TOTAL_BOOKS }, (_, index) => index + 1)
@@ -87,9 +95,9 @@ export function generateNeighbourhoodQuestion({ book, rng }) {
 
   const { options, correctOptionId } = buildChoices({
     kind: OPTION_KIND.RUN,
-    correct: runOf(book.id),
-    distractors: decoyCentres.map(runOf),
-    idOf: (run) => run.join('>'),
+    correct: runAround(book.id),
+    distractors: decoyCentres.map(runAround),
+    idOf: (run) => run.map((id) => id ?? '_').join('>'),
     rng,
   });
 

@@ -3,7 +3,7 @@ export const ROUTES = Object.freeze({
   welcome: '/welcome',
   home: '/',
   training: '/training',
-  trainingLevel: (levelId = ':levelId') => `/training/${levelId}`,
+  trainingGame: (gameId = ':gameId') => `/training/${gameId}`,
   quest: '/quest',
   questRun: (questId = ':questId') => `/quest/${questId}`,
   progress: '/progress',

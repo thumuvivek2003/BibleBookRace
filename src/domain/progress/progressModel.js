@@ -10,7 +10,7 @@ import { createBookStat } from '@/domain/mastery/masteryModel.js';
  * keeps the whole model deterministic and testable.
  */
 
-export const PROGRESS_VERSION = 1;
+export const PROGRESS_VERSION = 2;
 const RECENT_ATTEMPTS_KEPT = 120;
 
 export function createEmptyProgress(at = Date.now()) {
@@ -19,7 +19,7 @@ export function createEmptyProgress(at = Date.now()) {
     createdAt: at,
     updatedAt: at,
     bookStats: {},
-    levelStats: {},
+    gameStats: {},
     quests: {},
     daily: { dayKey: toDayKey(new Date(at)), practiceMs: 0, questionsAnswered: 0 },
     streak: { current: 0, longest: 0, lastDayKey: null },
@@ -45,7 +45,7 @@ export function startDay(progress, dayKey = toDayKey()) {
 
 /**
  * @param {object} progress
- * @param {{ bookId: string, levelId: string, correct: boolean, timeMs: number, at?: number }} attempt
+ * @param {{ bookId: string, gameId: string, correct: boolean, timeMs: number, at?: number }} attempt
  */
 export function recordAttempt(progress, attempt) {
   const at = attempt.at ?? Date.now();
@@ -115,18 +115,18 @@ export function registerActiveDay(progress, dayKey = toDayKey()) {
 
 /**
  * @param {object} progress
- * @param {{ levelId: string, accuracy: number, at?: number }} result
+ * @param {{ gameId: string, accuracy: number, at?: number }} result
  */
-export function completeRound(progress, { levelId, accuracy, at = Date.now() }) {
-  const previous = progress.levelStats[levelId] ?? { rounds: 0, bestAccuracy: 0, lastPlayedAt: null };
+export function completeRound(progress, { gameId, accuracy, at = Date.now() }) {
+  const previous = progress.gameStats[gameId] ?? { rounds: 0, bestAccuracy: 0, lastPlayedAt: null };
   const withDay = registerActiveDay(progress, toDayKey(new Date(at)));
 
   return {
     ...withDay,
     updatedAt: at,
-    levelStats: {
-      ...withDay.levelStats,
-      [levelId]: {
+    gameStats: {
+      ...withDay.gameStats,
+      [gameId]: {
         rounds: previous.rounds + 1,
         bestAccuracy: Math.max(previous.bestAccuracy, clamp(accuracy, 0, 1)),
         lastPlayedAt: at,
@@ -171,12 +171,30 @@ export function resetProgress(at = Date.now()) {
 
 /**
  * Upgrades a document written by an older version of the app.
- * Unknown/older shapes fall back to a fresh document rather than crashing.
+ *
+ * Each step is a small pure function, applied in order. Book mastery is the
+ * part a learner actually earned over weeks, so a rename must never be an
+ * excuse to throw it away - only genuinely unreadable documents start fresh.
  */
+const MIGRATIONS = {
+  // v1 -> v2: training levels became individual games. Per-game round counts
+  // are cheap to rebuild, book mastery is not, so the stats keyed by the old
+  // level ids are dropped and everything else is carried across.
+  1: ({ levelStats: _levelStats, ...rest }) => ({ ...rest, version: 2, gameStats: {} }),
+};
+
 export function migrateProgress(stored) {
-  if (!stored || typeof stored !== 'object') return createEmptyProgress();
-  if (stored.version === PROGRESS_VERSION) {
-    return { ...createEmptyProgress(stored.createdAt ?? Date.now()), ...stored };
+  if (!stored || typeof stored !== 'object' || typeof stored.version !== 'number') {
+    return createEmptyProgress();
   }
-  return createEmptyProgress();
+
+  let document = stored;
+  while (document.version < PROGRESS_VERSION) {
+    const step = MIGRATIONS[document.version];
+    if (!step) return createEmptyProgress();
+    document = step(document);
+  }
+
+  // Fill in any field added since the document was written.
+  return { ...createEmptyProgress(document.createdAt ?? Date.now()), ...document };
 }

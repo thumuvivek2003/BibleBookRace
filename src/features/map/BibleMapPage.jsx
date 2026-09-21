@@ -21,7 +21,7 @@ import { ROUTES } from '@/app/routes.js';
 /**
  * Reference screen: all 66 books by neighbourhood, plus a book detail sheet
  * showing its neighbours - the "book -> neighbour -> neighbourhood" model the
- * training levels drill.
+ * training games drill.
  */
 export function BibleMapPage() {
   const { t } = useTranslation();

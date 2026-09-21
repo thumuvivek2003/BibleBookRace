@@ -76,8 +76,8 @@ export function getDailyGoalRatio(progress, goalMinutes) {
   return Math.min(1, progress.daily.practiceMs / (goalMinutes * 60000));
 }
 
-export function getLevelStat(progress, levelId) {
-  return progress.levelStats[levelId] ?? { rounds: 0, bestAccuracy: 0, lastPlayedAt: null };
+export function getGameStat(progress, gameId) {
+  return progress.gameStats[gameId] ?? { rounds: 0, bestAccuracy: 0, lastPlayedAt: null };
 }
 
 export function getQuestStat(progress, questId) {

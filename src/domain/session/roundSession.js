@@ -15,7 +15,7 @@ export const ROUND_STATUS = Object.freeze({
 
 /**
  * @param {object[]} questions
- * @param {object} [meta] anything the caller wants to carry along (levelId, questId...)
+ * @param {object} [meta] anything the caller wants to carry along (gameId, questId...)
  */
 export function createRoundSession(questions, meta = {}) {
   return {
@@ -54,7 +54,7 @@ export function submitAnswer(session, answer) {
   const record = {
     questionId: question.id,
     bookId: question.bookId,
-    levelId: question.levelId,
+    gameId: question.gameId,
     type: question.type,
     correct: isAnswerCorrect(question, answer),
     timeMs: Math.max(0, answer.timeMs ?? 0),

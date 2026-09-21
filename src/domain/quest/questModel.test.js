@@ -21,7 +21,7 @@ describe('quests', () => {
     for (let index = 0; index < 10; index += 1) {
       progress = recordAttempt(progress, {
         bookId: `book-${index}`,
-        levelId: 'bible-map',
+        gameId: 'bible-map',
         correct: true,
         timeMs: 1000,
       });

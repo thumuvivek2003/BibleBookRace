@@ -50,13 +50,14 @@ export function createGameText({ t, locale }) {
       case OPTION_KIND.TESTAMENT:
         return testamentName(option.value);
       case OPTION_KIND.RUN:
-        return option.value.map(bookName).join(' → ');
+        // `null` is the blanked-out subject book.
+        return option.value.map((id) => (id ? bookName(id) : '?')).join(' → ');
       default:
         return String(option.value);
     }
   };
 
-  const runLabel = (bookIds) => bookIds.map(bookName).join(' → ');
+  const runLabel = (bookIds) => bookIds.map((id) => (id ? bookName(id) : '?')).join(' → ');
 
   return { bookName, sectionName, testamentName, phrase, optionLabel, runLabel, resolveParams };
 }

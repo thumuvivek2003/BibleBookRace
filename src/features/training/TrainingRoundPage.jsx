@@ -12,28 +12,28 @@ import { usePracticeClock } from '@/hooks/usePracticeClock.js';
 import { ROUTES } from '@/app/routes.js';
 import { useTrainingRound } from './useTrainingRound.js';
 import { ChoiceQuestion } from './components/ChoiceQuestion.jsx';
-import { SequenceQuestion } from './components/SequenceQuestion.jsx';
+import { OrderQuestion } from './components/OrderQuestion.jsx';
 import { PhysicalFindQuestion } from './components/PhysicalFindQuestion.jsx';
 import { RoundResult } from './components/RoundResult.jsx';
 
 /**
- * One screen for all three levels.
+ * One screen for every game.
  *
- * It picks a view per `answerMode` instead of branching on the level, so a new
+ * It picks a view per `answerMode` instead of branching on the game, so a new
  * question type only needs an entry in this map (Open/Closed).
  */
 const QUESTION_VIEWS = {
   [ANSWER_MODE.CHOICE]: ChoiceQuestion,
-  [ANSWER_MODE.SEQUENCE]: SequenceQuestion,
+  [ANSWER_MODE.SEQUENCE]: OrderQuestion,
   [ANSWER_MODE.PHYSICAL]: PhysicalFindQuestion,
 };
 
 export function TrainingRoundPage() {
-  const { levelId } = useParams();
+  const { gameId } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const gameText = useGameText();
-  const round = useTrainingRound(levelId);
+  const round = useTrainingRound(gameId);
 
   usePracticeClock();
 
@@ -45,7 +45,7 @@ export function TrainingRoundPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question?.id, session.status, roundKey]);
 
-  if (!round.level) {
+  if (!round.game) {
     return (
       <AppShell width="narrow">
         <ScreenHeader title={t('errors.notFound')} backTo={ROUTES.training} />
@@ -53,15 +53,15 @@ export function TrainingRoundPage() {
     );
   }
 
-  const title = t(`levels.${round.level.id}.title`);
+  const title = t(`games.${round.game.id}.title`);
   const QuestionView = question ? QUESTION_VIEWS[question.answerMode] : null;
   const reviewing = session.status === ROUND_STATUS.REVIEWING;
 
   return (
     <AppShell width="narrow">
       <ScreenHeader
-        title={t('training.levelLabel', { number: round.level.number })}
-        subtitle={title}
+        title={title}
+        subtitle={t('training.gameLabel', { number: round.game.number })}
         backTo={ROUTES.training}
         right={
           !round.finished && (

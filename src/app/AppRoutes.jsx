@@ -26,7 +26,7 @@ export function AppRoutes() {
         }
       />
       <Route path={ROUTES.training} element={<TrainingMenuPage />} />
-      <Route path={ROUTES.trainingLevel()} element={<TrainingRoundPage />} />
+      <Route path={ROUTES.trainingGame()} element={<TrainingRoundPage />} />
       <Route path={ROUTES.quest} element={<QuestListPage />} />
       <Route path={ROUTES.questRun()} element={<QuestRunPage />} />
       <Route path={ROUTES.progress} element={<ProgressPage />} />

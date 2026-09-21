@@ -70,26 +70,43 @@ export default {
   training: {
     title: 'Training',
     subtitle: 'Build your Bible navigation skills',
-    unlockNote: 'Complete all levels to unlock special quests!',
-    levelLabel: 'Level {number}',
+    unlockNote: 'Play every game to unlock special quests!',
+    gameLabel: 'Game {number}',
     bestAccuracy: 'Best {value}',
     roundsPlayed: '{count} rounds',
     notPlayedYet: 'Not started yet',
     needsBible: 'Physical Bible needed',
     startRound: 'Start Round',
   },
-  levels: {
-    'bible-map': {
-      title: 'Bible Map',
-      description: 'Learn the sections and locations of all 66 books.',
+  groups: {
+    map: { title: 'Learn the map', subtitle: 'Where every book lives' },
+    neighbours: { title: 'Know the neighbours', subtitle: 'What comes before and after' },
+    hand: { title: 'Find it for real', subtitle: 'Your hands do the work' },
+  },
+  games: {
+    testament: {
+      title: 'Old or New?',
+      description: 'One question: which testament is this book in?',
+    },
+    section: {
+      title: 'Which Shelf?',
+      description: 'Law, Gospels, Letters… name the section a book belongs to.',
+    },
+    neighbourhood: {
+      title: 'Who Lives Nearby?',
+      description: 'Spot the books that sit either side of this one.',
+    },
+    'order-books': {
+      title: 'Put In Order',
+      description: 'Drag the books into the order they appear in the Bible.',
     },
     'brain-neighbour': {
-      title: 'Brain → Neighbour',
-      description: 'Know what comes before, after and between.',
+      title: 'Before & After',
+      description: 'Know what comes before, after and in between.',
     },
     'hand-geography': {
       title: 'Hand Geography',
-      description: 'Find the book in your physical Bible.',
+      description: 'Find the book in your physical Bible, against the clock.',
     },
   },
   question: {
@@ -103,11 +120,20 @@ export default {
     findInBible: 'Find this book in your physical Bible:',
     counter: '{position} / {total}',
   },
-  sequence: {
-    hint: 'Tap the books in the right order',
-    clear: 'Clear',
+  order: {
+    hint: 'Drag each book into the right box',
+    tapHint: 'Or tap a book, then tap a box',
+    slot: 'Box {position}',
+    empty: 'Drop here',
+    pool: 'Books to place',
+    clear: 'Start over',
     check: 'Check',
-    yourOrder: 'Your order',
+    remaining: '{count} left to place',
+    dragInstructions:
+      'Press space to pick a book up, use the arrow keys to move it over a box, then press space to drop it. Press escape to cancel. You can also tap a book and then tap a box.',
+    pickedUp: 'Picked up {book}.',
+    droppedIn: 'Put {book} in box {position}.',
+    returned: 'Put {book} back.',
   },
   hand: {
     tapStart: 'Tap start when you begin searching.',
