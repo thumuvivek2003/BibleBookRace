@@ -43,10 +43,47 @@ Progression is **mastery**, not XP: `Not Yet → Learning → Familiar → Fast 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # 63 tests
+npm test         # 64 tests
 npm run lint
 npm run build
 ```
+
+---
+
+## Deploy (GitHub Pages)
+
+Live at **https://thumuvivek2003.github.io/BibleBookRace/**
+
+Every push to `main` lints, tests and builds, then publishes — see
+[deploy.yml](.github/workflows/deploy.yml). A failing test never reaches the
+live site.
+
+**One-time setup:** repo → *Settings* → *Pages* → *Build and deployment* →
+Source: **GitHub Actions**. Nothing else; there is no `gh-pages` branch and no
+extra npm dependency.
+
+Three details make a React SPA work on Pages, all already wired up:
+
+| Problem | Fix |
+| ------- | --- |
+| Site lives at `/BibleBookRace/`, not `/` | `base` in [vite.config.js](vite.config.js); the router reads it back via `import.meta.env.BASE_URL` |
+| Pages has no server routing, so a refresh on `/progress` 404s | the build copies `index.html` to `404.html`, which Pages serves for unknown paths — React Router then renders the right screen |
+| Jekyll skips files starting with `_` | empty `public/.nojekyll` |
+
+Deploying somewhere else — a custom domain, Netlify, a user site — needs no code
+change, just a different base:
+
+```bash
+VITE_BASE=/ npm run build
+```
+
+For a custom domain, set that variable in the workflow and add a `public/CNAME`
+file containing the domain.
+
+**Why not `HashRouter`?** It would avoid the `404.html` trick, but every URL
+becomes `…/#/training`. Clean URLs are worth one copied file. The only cost of
+this approach is that a deep link is served with a 404 status code before the
+app takes over — invisible to users, and irrelevant for an offline-first game.
 
 ---
 
@@ -181,7 +218,7 @@ in rather than baked into the factory.
 
 ## Testing
 
-63 tests, aimed at the brain rather than the buttons:
+64 tests, aimed at the brain rather than the buttons:
 
 - `bookRepository` — canon integrity, neighbours, edge clipping
 - `questionFactory` — one correct option, no impossible questions, real neighbours

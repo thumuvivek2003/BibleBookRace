@@ -9,6 +9,7 @@ import { act, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
+import App from './App.jsx';
 import { AppProviders } from './providers/AppProviders.jsx';
 import { AppRoutes } from './AppRoutes.jsx';
 import { createStorage, createMemoryStorageAdapter } from '@/services/storage/index.js';
@@ -105,6 +106,22 @@ describe('every screen mounts', () => {
     const html = renderAt('/map', { locale: 'te' });
     expect(html).toContain('ఆదికాండము');
     expect(html).not.toContain('Genesis');
+  });
+});
+
+describe('app root', () => {
+  it('mounts with the real BrowserRouter and the Pages basename', () => {
+    // Guards the `base` / basename wiring behind the GitHub Pages sub-path:
+    // a malformed basename throws on mount rather than failing quietly.
+    const container = document.createElement('div');
+    document.body.append(container);
+    const root = createRoot(container);
+
+    act(() => root.render(<App />));
+    expect(container.textContent.length).toBeGreaterThan(0);
+
+    act(() => root.unmount());
+    container.remove();
   });
 });
 
